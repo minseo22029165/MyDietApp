@@ -1,5 +1,6 @@
 package com.example.mydietapp.ui;
 
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,13 +10,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import com.example.mydietapp.Decorator.DotPrcatcice;
+import com.example.mydietapp.Decorator.HighlightSundayDecorator;
 import com.example.mydietapp.Decorator.HighlightTodayDecorator;
-import com.example.mydietapp.Decorator.HighlightWeekendDecorator;
+import com.example.mydietapp.Decorator.HighlightSaturdayDecorator;
 import com.example.mydietapp.R;
 import com.prolificinteractive.materialcalendarview.*;
 
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @RequiresApi(api = Build.VERSION_CODES.O)
@@ -31,11 +36,15 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
         widget=v.findViewById(R.id.calendarView);
 
         widget.setOnDateChangedListener(this);
-//        widget.setOnDateLongClickListener(this);
         widget.setOnMonthChangedListener(this);
+
+        Set<CalendarDay> set=new HashSet<>();
+        set.add(new CalendarDay(2021,6,7));
         widget.addDecorators(
-                new HighlightTodayDecorator(),
-                new HighlightWeekendDecorator()
+                new HighlightTodayDecorator(getActivity()), // 액티비티가 context를 의미하므로 getActivity() 사용함
+                new HighlightSaturdayDecorator(),
+                new HighlightSundayDecorator(),
+                new DotPrcatcice(Color.CYAN,set)
         );
 
         return v;
@@ -48,11 +57,6 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
             boolean selected) {
         System.out.println("=====data selected====="+widget.getSelectedDate());
     }
-
-//    @Override
-//    public void onDateLongClick(@NonNull MaterialCalendarView widget, @NonNull CalendarDay date) {
-//        System.out.println("=====data long click=====");
-//    }
 
     @Override
     public void onMonthChanged(MaterialCalendarView widget, CalendarDay date) {
