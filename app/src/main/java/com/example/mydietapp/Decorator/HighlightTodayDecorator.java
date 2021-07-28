@@ -30,8 +30,6 @@ public class HighlightTodayDecorator implements DayViewDecorator {
 
     @Override
     public boolean shouldDecorate(CalendarDay day) { // day는 모든 날짜 for문 반복
-//        final DayOfWeek weekDay = day.getDay().dayOfWeek();
-//        return weekDay == DayOfWeek.SATURDAY || weekDay == DayOfWeek.SUNDAY;
         day.copyTo(calendar);
         System.out.println("******day:"+day+", date:"+date);
         int weekDay = calendar.get(Calendar.DAY_OF_WEEK);

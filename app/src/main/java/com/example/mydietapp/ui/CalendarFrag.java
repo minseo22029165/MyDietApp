@@ -1,6 +1,10 @@
 package com.example.mydietapp.ui;
 
+import android.app.AlertDialog;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.Picture;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,35 +14,58 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import com.amitshekhar.DebugDB;
+import com.example.mydietapp.DB.DbHelper;
 import com.example.mydietapp.Decorator.DotPrcatcice;
 import com.example.mydietapp.Decorator.HighlightSundayDecorator;
 import com.example.mydietapp.Decorator.HighlightTodayDecorator;
 import com.example.mydietapp.Decorator.HighlightSaturdayDecorator;
+import com.example.mydietapp.MainActivity;
 import com.example.mydietapp.R;
 import com.prolificinteractive.materialcalendarview.*;
 
 
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class CalendarFrag extends Fragment implements OnDateSelectedListener, OnMonthChangedListener {
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("EEE, d MMM yyyy");
     private MaterialCalendarView widget;
+    private Set<CalendarDay> set;
+
+    private DbHelper helper;
+    private SQLiteDatabase db;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v=inflater.inflate(R.layout.frag_calendar,container,false);
-        widget=v.findViewById(R.id.calendarView);
+        set=new HashSet<>();
 
+        helper = new DbHelper(getActivity(), "myDiet.db", null, 1);
+        db = helper.getWritableDatabase();
+        helper.onCreate(db);
+//        insert문
+//        String sql = "INSERT INTO myRecord('record_date','weight','exercise','food') values('2021-06-28 04:20:20',12,2.5,2.0);";
+//        db.execSQL(sql);
+        System.out.println("gilbomi"); // MainActicity에 이 fragment를 바로 띄웠기 때문에 기본적으로 두번 반복되고 폰 화면켜서 보면 총 세번 반복됨
+//        DebugDB.getAddressLog(); // android-debug-database 사용
+        String sql2 = "select * from myRecord;";
+        Cursor c = db.rawQuery(sql2, null);
+        while(c.moveToNext()){
+            String[] date=c.getString(1).split(" ")[0].split("-");
+            set.add(new CalendarDay(Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])));
+        }
+        System.out.println("**********************");
+        widget=v.findViewById(R.id.calendarView);
         widget.setOnDateChangedListener(this);
         widget.setOnMonthChangedListener(this);
 
-        Set<CalendarDay> set=new HashSet<>();
+
         set.add(new CalendarDay(2021,6,7));
         widget.addDecorators(
                 new HighlightTodayDecorator(getActivity()), // 액티비티가 context를 의미하므로 getActivity() 사용함
@@ -55,7 +82,26 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
             @NonNull MaterialCalendarView widget,
             @NonNull CalendarDay date,
             boolean selected) {
-        System.out.println("=====data selected====="+widget.getSelectedDate());
+        if(set.contains(date)) {
+            System.out.println("bom:"+date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
+
+            StringBuffer sb = new StringBuffer();
+            sb.append("select * from myRecord where record_date like ?");
+            String[] params = {date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay()+"%"};
+            Cursor cursor = db.rawQuery(sb.toString(), params);
+            String weight="",exercise="",food="";
+            while( cursor.moveToNext() ) {
+                weight=cursor.getString(2);
+                exercise=cursor.getString(3);
+                food=cursor.getString(4);
+            }
+            System.out.println("bom1:"+weight);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("weight:"+weight+"\nexercise:"+exercise+"\nfood:"+food)
+                    .setTitle(date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
+            builder.show();
+        }
     }
 
     @Override
