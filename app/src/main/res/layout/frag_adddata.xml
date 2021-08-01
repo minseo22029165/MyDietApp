@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:weightSum="10" >
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_weight="0.4">
+        <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/previousDateButton"
+                android:background="#00000000"
+                android:src="@drawable/ic_chevron_left_black_24dp"
+                android:scaleType="fitCenter"/>
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_toLeftOf="@+id/nextDateButton"
+                android:layout_toRightOf="@+id/previousDateButton"
+                android:id="@+id/datePickerButton"
+                android:text="날짜"/>
+        <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/nextDateButton"
+                android:layout_alignParentRight="true"
+                android:background="#00000000"
+                android:src="@drawable/ic_chevron_right_black_24dp"
+                android:scaleType="fitCenter"/>
+        <TextView android:id="@+id/previousWeightText"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:textAlignment="center"
+                  android:gravity="center"
+                  android:textSize="20sp"
+                  android:text="이전 몸무게는 kg,\n 식사는 3, 운동은 4.5입니다"
+                  android:layout_marginTop="5dp"
+                  android:layout_below="@id/datePickerButton" />
+    </RelativeLayout>
+    <View
+            android:layout_width="wrap_content"
+            android:layout_height="0.3dp"
+            android:background="#000000" />
+
+    <androidx.gridlayout.widget.GridLayout
+                android:layout_width="match_parent"
+                app:columnCount="2"
+                app:orientation="horizontal"
+                app:rowCount="3"
+                app:alignmentMode="alignMargins"
+                android:layout_height="0dp"
+                android:layout_weight="7">
+        <TextView android:id="@+id/text1"
+                      android:layout_width="100dp"
+                      android:layout_height="50dp"
+                      android:gravity="center_vertical"
+                      android:layout_marginLeft="10dp"
+                      android:textSize="20sp"
+                      android:text="몸무게"/>
+
+        <androidx.gridlayout.widget.GridLayout
+                    android:layout_width="match_parent"
+                    app:columnCount="2"
+                    app:orientation="horizontal"
+                    app:rowCount="1"
+                    app:alignmentMode="alignMargins"
+                    android:layout_height="wrap_content">
+            <EditText
+                        android:id="@+id/weightEditText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ems="5"
+                        android:inputType="numberSigned|number|numberDecimal"
+                        android:hint="미입력"/>
+            <TextView android:id="@+id/text4"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:gravity="center_vertical"
+                          android:textSize="20sp"
+                          android:text="kg"/>
+        </androidx.gridlayout.widget.GridLayout>
+
+        <TextView android:id="@+id/text2"
+                      android:layout_width="wrap_content"
+                      android:layout_height="50dp"
+                      android:gravity="center_vertical"
+                      android:textSize="20sp"
+                      android:layout_marginLeft="10dp"
+                      android:text="식사 달성률"/>
+        <RatingBar
+                    android:id="@+id/foodRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:numStars="5"
+                    android:rating="3"
+                    android:stepSize="0.5"/>
+        <TextView android:id="@+id/text3"
+                      android:layout_width="wrap_content"
+                      android:layout_height="50dp"
+                      android:gravity="center_vertical"
+                      android:textSize="20sp"
+                      android:layout_marginLeft="10dp"
+                      android:text="운동 달성률"/>
+        <RatingBar
+                android:id="@+id/exerciseRating"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:numStars="5"
+                android:rating="3"
+                android:stepSize="0.5"/>
+
+    </androidx.gridlayout.widget.GridLayout>
+    <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:id="@+id/registButton"
+                android:text="등록"/>
+
+</LinearLayout>

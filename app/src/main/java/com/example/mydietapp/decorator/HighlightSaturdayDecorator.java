@@ -1,17 +1,10 @@
-package com.example.mydietapp.Decorator;
+package com.example.mydietapp.decorator;
 
 
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.TextAppearanceSpan;
 import androidx.annotation.RequiresApi;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import com.example.mydietapp.R;
-import com.example.mydietapp.ui.CalendarFrag;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.DayViewDecorator;
 import com.prolificinteractive.materialcalendarview.DayViewFacade;

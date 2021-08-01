@@ -4,31 +4,29 @@ import android.app.AlertDialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.Picture;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import com.amitshekhar.DebugDB;
-import com.example.mydietapp.DB.DbHelper;
-import com.example.mydietapp.Decorator.DotPrcatcice;
-import com.example.mydietapp.Decorator.HighlightSundayDecorator;
-import com.example.mydietapp.Decorator.HighlightTodayDecorator;
-import com.example.mydietapp.Decorator.HighlightSaturdayDecorator;
 import com.example.mydietapp.MainActivity;
+import com.example.mydietapp.custom.NumberDecimalInputFilter;
+import com.example.mydietapp.db.DbHelper;
+import com.example.mydietapp.decorator.DotPrcatcice;
+import com.example.mydietapp.decorator.HighlightSundayDecorator;
+import com.example.mydietapp.decorator.HighlightTodayDecorator;
+import com.example.mydietapp.decorator.HighlightSaturdayDecorator;
 import com.example.mydietapp.R;
 import com.prolificinteractive.materialcalendarview.*;
 
 
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 
@@ -60,7 +58,6 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
             String[] date=c.getString(1).split(" ")[0].split("-");
             set.add(new CalendarDay(Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])));
         }
-        System.out.println("**********************");
         widget=v.findViewById(R.id.calendarView);
         widget.setOnDateChangedListener(this);
         widget.setOnMonthChangedListener(this);
@@ -83,6 +80,7 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
             @NonNull CalendarDay date,
             boolean selected) {
         if(set.contains(date)) {
+//            date.getCalendar().after(1);
             System.out.println("bom:"+date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
 
             StringBuffer sb = new StringBuffer();
@@ -101,6 +99,9 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
             builder.setMessage("weight:"+weight+"\nexercise:"+exercise+"\nfood:"+food)
                     .setTitle(date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
             builder.show();
+        } else {
+            // getActivity()로 MainActivity의 replaceFragment를 불러옵니다.
+            ((MainActivity)getActivity()).replaceFragment(AddDataFrag.newInstance(date,set));    // 새로 불러올 Fragment의 Instance를 Main으로 전달
         }
     }
 

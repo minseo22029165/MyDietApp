@@ -9,11 +9,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.mydietapp.R;
 
-public class SettingFlag extends Fragment {
+public class SettingFrag extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v=inflater.inflate(R.layout.flag_setting,container,false);
+        View v=inflater.inflate(R.layout.frag_setting,container,false);
         return v;
     }
 }

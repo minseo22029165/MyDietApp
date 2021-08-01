@@ -1,11 +1,8 @@
-package com.example.mydietapp.DB;
+package com.example.mydietapp.db;
 
 import android.content.Context;
-import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public class DbHelper extends SQLiteOpenHelper {
     public DbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {

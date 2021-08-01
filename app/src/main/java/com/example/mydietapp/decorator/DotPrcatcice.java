@@ -1,4 +1,4 @@
-package com.example.mydietapp.Decorator;
+package com.example.mydietapp.decorator;
 
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
