@@ -50,7 +50,7 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
 //        insert문
 //        String sql = "INSERT INTO myRecord('record_date','weight','exercise','food') values('2021-06-28 04:20:20',12,2.5,2.0);";
 //        db.execSQL(sql);
-        System.out.println("gilbomi"); // MainActicity에 이 fragment를 바로 띄웠기 때문에 기본적으로 두번 반복되고 폰 화면켜서 보면 총 세번 반복됨
+//        System.out.println("gilbomi"); // MainActicity에 이 fragment를 바로 띄웠기 때문에 기본적으로 두번 반복되고 폰 화면켜서 보면 총 세번 반복됨
 //        DebugDB.getAddressLog(); // android-debug-database 사용
         String sql2 = "select * from myRecord;";
         Cursor c = db.rawQuery(sql2, null);
@@ -79,35 +79,31 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
             @NonNull MaterialCalendarView widget,
             @NonNull CalendarDay date,
             boolean selected) {
-        if(set.contains(date)) {
-//            date.getCalendar().after(1);
-            System.out.println("bom:"+date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
-
-            StringBuffer sb = new StringBuffer();
-            sb.append("select * from myRecord where record_date like ?");
-            String[] params = {date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay()+"%"};
-            Cursor cursor = db.rawQuery(sb.toString(), params);
-            String weight="",exercise="",food="";
-            while( cursor.moveToNext() ) {
-                weight=cursor.getString(2);
-                exercise=cursor.getString(3);
-                food=cursor.getString(4);
-            }
-            System.out.println("bom1:"+weight);
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage("weight:"+weight+"\nexercise:"+exercise+"\nfood:"+food)
-                    .setTitle(date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
-            builder.show();
-        } else {
+//        if(set.contains(date)) {
+//            StringBuffer sb = new StringBuffer();
+//            sb.append("select * from myRecord where record_date like ?");
+//            String[] params = {date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay()+"%"};
+//            Cursor cursor = db.rawQuery(sb.toString(), params);
+//            String weight="",exercise="",food="";
+//            while( cursor.moveToNext() ) {
+//                weight=cursor.getString(2);
+//                exercise=cursor.getString(3);
+//                food=cursor.getString(4);
+//            }
+//
+//            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+//            builder.setMessage("weight:"+weight+"\nexercise:"+exercise+"\nfood:"+food)
+//                    .setTitle(date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
+//            builder.show();
+//        } else {
             // getActivity()로 MainActivity의 replaceFragment를 불러옵니다.
             ((MainActivity)getActivity()).replaceFragment(AddDataFrag.newInstance(date,set));    // 새로 불러올 Fragment의 Instance를 Main으로 전달
-        }
+
     }
 
     @Override
     public void onMonthChanged(MaterialCalendarView widget, CalendarDay date) {
-        System.out.println("=====month changed=====");
+//        System.out.println("=====month changed=====");
     }
 
 
