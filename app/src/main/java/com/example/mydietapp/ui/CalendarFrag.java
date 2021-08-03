@@ -62,8 +62,6 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
         widget.setOnDateChangedListener(this);
         widget.setOnMonthChangedListener(this);
 
-
-        set.add(new CalendarDay(2021,6,7));
         widget.addDecorators(
                 new HighlightTodayDecorator(getActivity()), // 액티비티가 context를 의미하므로 getActivity() 사용함
                 new HighlightSaturdayDecorator(),
@@ -79,24 +77,7 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
             @NonNull MaterialCalendarView widget,
             @NonNull CalendarDay date,
             boolean selected) {
-//        if(set.contains(date)) {
-//            StringBuffer sb = new StringBuffer();
-//            sb.append("select * from myRecord where record_date like ?");
-//            String[] params = {date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay()+"%"};
-//            Cursor cursor = db.rawQuery(sb.toString(), params);
-//            String weight="",exercise="",food="";
-//            while( cursor.moveToNext() ) {
-//                weight=cursor.getString(2);
-//                exercise=cursor.getString(3);
-//                food=cursor.getString(4);
-//            }
-//
-//            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-//            builder.setMessage("weight:"+weight+"\nexercise:"+exercise+"\nfood:"+food)
-//                    .setTitle(date.getYear()+"-"+(date.getMonth()+1)+"-"+date.getDay());
-//            builder.show();
-//        } else {
-            // getActivity()로 MainActivity의 replaceFragment를 불러옵니다.
+            MainActivity.fragmentStack.push(this);
             ((MainActivity)getActivity()).replaceFragment(AddDataFrag.newInstance(date,set));    // 새로 불러올 Fragment의 Instance를 Main으로 전달
 
     }

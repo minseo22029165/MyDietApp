@@ -21,14 +21,12 @@ import com.example.mydietapp.db.DbHelper;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class AddDataFrag extends Fragment {
     private static CalendarDay day;
     private static HashSet<CalendarDay> dataSet=new HashSet<>();
+    private static List<CalendarDay> list;
 
     private DbHelper helper;
     private SQLiteDatabase db;
@@ -37,11 +35,22 @@ public class AddDataFrag extends Fragment {
     private RatingBar food;
     private RatingBar exercise;
     private Button registButton;
+    private DatePicker dp;
+    private TextView previousWeightText;
 
     // 각각의 Fragment마다 Instance를 반환해 줄 메소드를 생성합니다.
     public static AddDataFrag newInstance(CalendarDay date, Set<CalendarDay> set) {
         day=date;
         dataSet.addAll(set);
+        list=new ArrayList<>(dataSet);
+        Collections.sort(list, new Comparator<CalendarDay>() {
+            @Override
+            public int compare(CalendarDay t1, CalendarDay t2) { // 오름차순
+                Calendar left=t1.getCalendar();
+                Calendar right=t2.getCalendar();
+                return left.compareTo(right);
+            }
+        });
         return new AddDataFrag();
     }
 
@@ -65,13 +74,16 @@ public class AddDataFrag extends Fragment {
         String time1 = format.format(day.getCalendar().getTime());
         datePicker.setText(time1);
 
-        Calendar c=day.getCalendar();
+        Calendar c=day.getCalendar(); // 현재 선택된 날
+
         weight=v.findViewById(R.id.weightEditText);
         food=v.findViewById(R.id.foodRating);
         exercise=v.findViewById(R.id.exerciseRating);
         registButton=v.findViewById(R.id.registButton);
+        previousWeightText=v.findViewById(R.id.previousWeightText);
 
         getDbData(c);
+        previousData(c);
 
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +97,10 @@ public class AddDataFrag extends Fragment {
                 builder.setPositiveButton("선택", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        c.set(dp.getYear(),dp.getMonth(),dp.getDayOfMonth());
+                        dp.updateDate(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
+                        datePicker.setText(format.format(c.getTime()));
+                        getDbData(c);
                     }
                 });
 
@@ -94,7 +109,7 @@ public class AddDataFrag extends Fragment {
                 //Dialog 보이기
                 dialog.show();
 
-                DatePicker dp=dialog.findViewById(R.id.datePicker);
+                dp=dialog.findViewById(R.id.datePicker);
                 dp.init(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE),null);
             }
         });
@@ -152,10 +167,45 @@ public class AddDataFrag extends Fragment {
 
         return v;
     }
+    public void previousData(Calendar c) {
+        int r=getRange(list,c);
+        if(r==-1) {
+            previousWeightText.setText("");
+        } else {
+            StringBuffer sb = new StringBuffer();
+            sb.append("select * from myRecord where record_date like ?");
+            String[] params = {c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)};
+            Cursor cursor = db.rawQuery(sb.toString(), params);
+
+            String weiValue = "", exValue = "", foValue = "";
+
+            while (cursor.moveToNext()) {
+                weiValue = cursor.getString(2);
+                exValue = cursor.getString(3);
+                foValue = cursor.getString(4);
+            }
+            previousWeightText.setText("");
+        }
+    }
+    public int getRange(List<CalendarDay> list, Calendar date) {
+        if(list.isEmpty())
+            return -1;
+        for(int i=0;i<list.size()-1;i++) { // size()==0 or 1 제외
+            Calendar v1=list.get(i).getCalendar();
+            if(v1.equals(date))
+                return i == 0 ? -1 : list.indexOf(new CalendarDay(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE))) - 1;
+            if(date.after(list.get(i).getCalendar()) && date.before(list.get(i+1).getCalendar()))
+                return i;
+        }
+        if(list.get(list.size()-1).getCalendar().equals(date))
+            return list.size()-2;
+        return date.before(list.get(0).getCalendar())?-1:list.size()-1; // 1인데 양끝 범위 여기서 처리됨
+    }
+
     public void getDbData(Calendar c) {
         StringBuffer sb = new StringBuffer();
         sb.append("select * from myRecord where record_date like ?");
-        String[] params = {c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE) + "%"};
+        String[] params = {c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)};
         Cursor cursor = db.rawQuery(sb.toString(), params);
 
         String weiValue = "", exValue = "", foValue = "";
