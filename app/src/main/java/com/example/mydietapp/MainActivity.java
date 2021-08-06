@@ -25,31 +25,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /// 뒤로가기
         fragmentStack = new Stack<>();
-//        fragmentStack.push(new CalendarFrag());
         manager = getSupportFragmentManager();
-        manager.beginTransaction().add(R.id.fragment_container, new CalendarFrag()).commit();
-        ///
+        manager.beginTransaction().add(R.id.fragment_container, new CalendarFrag()).commit(); // 첫화면 띄우기
+
 
         mBottomNavigationView=findViewById(R.id.bottom_navigation);
-        //첫 화면 띄우기
-//         getSupportFragmentManager().beginTransaction().add(R.id.fragment_container,new CalendarFrag()).commit();
 
         mBottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.b_calendar :
-//                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,new CalendarFrag()).commit();
                         manager.beginTransaction().replace(R.id.fragment_container,new CalendarFrag()).commit();
                         break;
                     case R.id.b_graph:
-//                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,new GraphFrag()).commit();
                         manager.beginTransaction().replace(R.id.fragment_container,new GraphFrag()).commit();
                         break;
                     case R.id.b_setting:
-//                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,new SettingFrag()).commit();
                         manager.beginTransaction().replace(R.id.fragment_container,new SettingFrag()).commit();
                         break;
 

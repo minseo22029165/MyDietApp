@@ -7,9 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,6 +18,7 @@ import com.example.mydietapp.custom.NumberDecimalInputFilter;
 import com.example.mydietapp.db.DbHelper;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
+import java.sql.SQLOutput;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -30,6 +29,7 @@ public class AddDataFrag extends Fragment {
 
     private DbHelper helper;
     private SQLiteDatabase db;
+    private Calendar c;
 
     private EditText weight;
     private RatingBar food;
@@ -42,7 +42,7 @@ public class AddDataFrag extends Fragment {
     public static AddDataFrag newInstance(CalendarDay date, Set<CalendarDay> set) {
         day=date;
         dataSet.addAll(set);
-        list=new ArrayList<>(dataSet);
+        list=new ArrayList<>(set);
         Collections.sort(list, new Comparator<CalendarDay>() {
             @Override
             public int compare(CalendarDay t1, CalendarDay t2) { // 오름차순
@@ -53,12 +53,42 @@ public class AddDataFrag extends Fragment {
         });
         return new AddDataFrag();
     }
-
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.top_menu, menu);
+        MenuItem menuItem = menu.findItem(R.id.delete);
+        CalendarDay cc=new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
+        if(!list.contains(cc)) {
+            menuItem.setVisible(false);
+        } else{
+            menuItem.setVisible(true);
+        }
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.delete:
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setMessage("현재 데이터를 삭제하시겠습니까?")
+                        .setPositiveButton("삭제", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                deleteDbData(c);
+                                list.remove(new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE)));
+                                getDbData(c);
+                            }
+                        })
+                        .setNegativeButton("취소", null);
+                builder.create().show();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v=inflater.inflate(R.layout.frag_adddata,container,false);
-
+        setHasOptionsMenu(true);
         helper = new DbHelper(getActivity(), "myDiet.db", null, 1);
         db = helper.getWritableDatabase();
         helper.onCreate(db);
@@ -74,7 +104,7 @@ public class AddDataFrag extends Fragment {
         String time1 = format.format(day.getCalendar().getTime());
         datePicker.setText(time1);
 
-        Calendar c=day.getCalendar(); // 현재 선택된 날
+        c=day.getCalendar(); // 현재 선택된 날
 
         weight=v.findViewById(R.id.weightEditText);
         food=v.findViewById(R.id.foodRating);
@@ -82,8 +112,13 @@ public class AddDataFrag extends Fragment {
         registButton=v.findViewById(R.id.registButton);
         previousWeightText=v.findViewById(R.id.previousWeightText);
 
+        for(CalendarDay d:list) {
+            System.out.println("ls:" + d.getDate());
+        }
+
         getDbData(c);
         previousData(c);
+        getActivity().invalidateOptionsMenu();
 
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,6 +136,8 @@ public class AddDataFrag extends Fragment {
                         dp.updateDate(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
                         datePicker.setText(format.format(c.getTime()));
                         getDbData(c);
+                        previousData(c);
+                        getActivity().invalidateOptionsMenu();
                     }
                 });
 
@@ -122,6 +159,8 @@ public class AddDataFrag extends Fragment {
                 System.out.println("ok:" + c.get(Calendar.YEAR) + " " + (c.get(Calendar.MONTH) + 1) + " " + c.get(Calendar.DATE));
 
                 getDbData(c);
+                previousData(c);
+                getActivity().invalidateOptionsMenu();
             }
         });
         next.setOnClickListener(new View.OnClickListener() {
@@ -131,35 +170,58 @@ public class AddDataFrag extends Fragment {
                 datePicker.setText(format.format(c.getTime()));
 
                 getDbData(c);
+                previousData(c);
+                getActivity().invalidateOptionsMenu();
             }
         });
         registButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(weight.getText().toString().equals("")) {
-                    System.out.println("weight 비어있음");
-                } else { // 등록할껀지 수정할껀지 if로 나눠서 진행하자!!
-//                    for(CalendarDay s:dataSet) {
-//                        System.out.println("cd1:"+s.getYear()+" "+s.getMonth()+" "+s.getDay());
-//                    }
+                    Toast.makeText(getActivity(), "몸무게 값이 비워져있습니다.", Toast.LENGTH_LONG).show();
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
                     CalendarDay cd=new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
-//                    System.out.println("cd:"+cd.getYear()+" "+cd.getMonth()+" "+cd.getDay());
-                    if(dataSet.contains(cd)) {
-                        System.out.println("log:수정");
-                        ContentValues values = new ContentValues();
-                        values.put("weight",Float.parseFloat(weight.getText().toString()));
-                        values.put("exercise",exercise.getRating());
-                        values.put("food",food.getRating());
-                        db.update("myRecord",values,"record_date=?", new String[]{cd.getYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDay()});
+                    if(list.contains(cd)) {
+                        builder.setMessage("현재 데이터를 덮어씌우시겠습니까?");
+                        builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                ContentValues values = new ContentValues();
+                                values.put("weight",Float.parseFloat(weight.getText().toString()));
+                                values.put("exercise",exercise.getRating());
+                                values.put("food",food.getRating());
+                                db.update("myRecord",values,"record_date=?", new String[]{cd.getYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDay()});
+                            }
+                        });
+
                     } else {
-                        System.out.println("log:새 등록");
-                        ContentValues values = new ContentValues();
-                        values.put("record_date",cd.getYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDay());
-                        values.put("weight",Float.parseFloat(weight.getText().toString()));
-                        values.put("exercise",exercise.getRating());
-                        values.put("food",food.getRating());
-                        db.insert("myRecord",null,values);
+                        builder.setMessage("현재 데이터를 새로 등록하시겠습니까?");
+                        builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                ContentValues values = new ContentValues();
+                                values.put("record_date",cd.getYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDay());
+                                values.put("weight",Float.parseFloat(weight.getText().toString()));
+                                values.put("exercise",exercise.getRating());
+                                values.put("food",food.getRating());
+                                db.insert("myRecord",null,values);
+
+                                list.add(cd);
+                                Collections.sort(list, new Comparator<CalendarDay>() {
+                                    @Override
+                                    public int compare(CalendarDay t1, CalendarDay t2) { // 오름차순
+                                        Calendar left=t1.getCalendar();
+                                        Calendar right=t2.getCalendar();
+                                        return left.compareTo(right);
+                                    }
+                                });
+                                getActivity().invalidateOptionsMenu();
+                            }
+                        });
                     }
+                    builder.setNegativeButton("취소", null);
+                    builder.create().show();
+                    getActivity().invalidateOptionsMenu();
                 }
             }
         });
@@ -174,7 +236,7 @@ public class AddDataFrag extends Fragment {
         } else {
             StringBuffer sb = new StringBuffer();
             sb.append("select * from myRecord where record_date like ?");
-            String[] params = {c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)};
+            String[] params = {list.get(r).getCalendar().get(Calendar.YEAR) + "-" + (list.get(r).getCalendar().get(Calendar.MONTH)+1) + "-" + list.get(r).getCalendar().get(Calendar.DATE)};
             Cursor cursor = db.rawQuery(sb.toString(), params);
 
             String weiValue = "", exValue = "", foValue = "";
@@ -184,7 +246,7 @@ public class AddDataFrag extends Fragment {
                 exValue = cursor.getString(3);
                 foValue = cursor.getString(4);
             }
-            previousWeightText.setText("");
+            previousWeightText.setText("이전 몸무게는 "+weiValue+"kg,\n식사는 "+foValue+", 운동은 "+exValue+"입니다.");
         }
     }
     public int getRange(List<CalendarDay> list, Calendar date) {
@@ -201,7 +263,9 @@ public class AddDataFrag extends Fragment {
             return list.size()-2;
         return date.before(list.get(0).getCalendar())?-1:list.size()-1; // 1인데 양끝 범위 여기서 처리됨
     }
-
+    public void deleteDbData(Calendar c) {
+        db.delete("myRecord","record_date=?",new String[]{c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)});
+    }
     public void getDbData(Calendar c) {
         StringBuffer sb = new StringBuffer();
         sb.append("select * from myRecord where record_date like ?");

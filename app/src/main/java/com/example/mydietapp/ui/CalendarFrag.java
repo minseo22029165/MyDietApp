@@ -47,11 +47,7 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
         helper = new DbHelper(getActivity(), "myDiet.db", null, 1);
         db = helper.getWritableDatabase();
         helper.onCreate(db);
-//        insert문
-//        String sql = "INSERT INTO myRecord('record_date','weight','exercise','food') values('2021-06-28 04:20:20',12,2.5,2.0);";
-//        db.execSQL(sql);
-//        System.out.println("gilbomi"); // MainActicity에 이 fragment를 바로 띄웠기 때문에 기본적으로 두번 반복되고 폰 화면켜서 보면 총 세번 반복됨
-//        DebugDB.getAddressLog(); // android-debug-database 사용
+
         String sql2 = "select * from myRecord;";
         Cursor c = db.rawQuery(sql2, null);
         while(c.moveToNext()){
