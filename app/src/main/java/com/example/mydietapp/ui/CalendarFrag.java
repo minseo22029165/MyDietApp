@@ -26,6 +26,8 @@ import com.example.mydietapp.R;
 import com.prolificinteractive.materialcalendarview.*;
 
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,7 +54,12 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
         Cursor c = db.rawQuery(sql2, null);
         while(c.moveToNext()){
             String[] date=c.getString(1).split(" ")[0].split("-");
-            set.add(new CalendarDay(Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])));
+//            set.add(new CalendarDay(Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])));
+            try {
+                set.add(new CalendarDay(new SimpleDateFormat( "yyyy-MM-dd").parse(c.getString(1))));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
         widget=v.findViewById(R.id.calendarView);
         widget.setOnDateChangedListener(this);

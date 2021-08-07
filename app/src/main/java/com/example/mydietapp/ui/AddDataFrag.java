@@ -12,13 +12,12 @@ import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.example.mydietapp.MainActivity;
 import com.example.mydietapp.R;
 import com.example.mydietapp.custom.NumberDecimalInputFilter;
 import com.example.mydietapp.db.DbHelper;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
-import java.sql.SQLOutput;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -27,6 +26,7 @@ public class AddDataFrag extends Fragment {
     private static HashSet<CalendarDay> dataSet=new HashSet<>();
     private static List<CalendarDay> list;
 
+    private SimpleDateFormat format;
     private DbHelper helper;
     private SQLiteDatabase db;
     private Calendar c;
@@ -55,10 +55,17 @@ public class AddDataFrag extends Fragment {
     }
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.top_menu, menu);
+        inflater.inflate(R.menu.add_data_top_menu, menu);
         MenuItem menuItem = menu.findItem(R.id.delete);
-        CalendarDay cc=new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
-        if(!list.contains(cc)) {
+//        CalendarDay cc=new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
+        Date dd= null;
+        try {
+            dd = format.parse(format.format(c.getTime()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        if(!list.contains(new CalendarDay(dd))) {
             menuItem.setVisible(false);
         } else{
             menuItem.setVisible(true);
@@ -72,8 +79,15 @@ public class AddDataFrag extends Fragment {
                 builder.setMessage("현재 데이터를 삭제하시겠습니까?")
                         .setPositiveButton("삭제", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+//                                list.remove(new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE)));
+                                Date dd=null;
+                                try {
+                                    dd = format.parse(format.format(c.getTime()));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
                                 deleteDbData(c);
-                                list.remove(new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE)));
+                                list.remove(new CalendarDay(dd));
                                 getDbData(c);
                             }
                         })
@@ -93,6 +107,8 @@ public class AddDataFrag extends Fragment {
         db = helper.getWritableDatabase();
         helper.onCreate(db);
 
+        format = new SimpleDateFormat ( "yyyy-MM-dd");
+
         EditText edit=v.findViewById(R.id.weightEditText);
         edit.setFilters(new InputFilter[] {new NumberDecimalInputFilter(0,200,1)});
         edit.setFilters(new InputFilter[] {new NumberDecimalInputFilter(0,200,1)});
@@ -100,12 +116,11 @@ public class AddDataFrag extends Fragment {
         ImageButton previous=v.findViewById(R.id.previousDateButton);
         ImageButton next=v.findViewById(R.id.nextDateButton);
 
-        SimpleDateFormat format = new SimpleDateFormat ( "yyyy-MM-dd");
         String time1 = format.format(day.getCalendar().getTime());
         datePicker.setText(time1);
 
         c=day.getCalendar(); // 현재 선택된 날
-
+        System.out.println("current:"+c);
         weight=v.findViewById(R.id.weightEditText);
         food=v.findViewById(R.id.foodRating);
         exercise=v.findViewById(R.id.exerciseRating);
@@ -117,7 +132,11 @@ public class AddDataFrag extends Fragment {
         }
 
         getDbData(c);
-        previousData(c);
+        try {
+            previousData(c);
+        } catch (ParseException e) {
+            System.out.println("exception 발생");
+        }
         getActivity().invalidateOptionsMenu();
 
         datePicker.setOnClickListener(new View.OnClickListener() {
@@ -136,7 +155,11 @@ public class AddDataFrag extends Fragment {
                         dp.updateDate(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
                         datePicker.setText(format.format(c.getTime()));
                         getDbData(c);
-                        previousData(c);
+                        try {
+                            previousData(c);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
                         getActivity().invalidateOptionsMenu();
                     }
                 });
@@ -159,7 +182,11 @@ public class AddDataFrag extends Fragment {
                 System.out.println("ok:" + c.get(Calendar.YEAR) + " " + (c.get(Calendar.MONTH) + 1) + " " + c.get(Calendar.DATE));
 
                 getDbData(c);
-                previousData(c);
+                try {
+                    previousData(c);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 getActivity().invalidateOptionsMenu();
             }
         });
@@ -170,7 +197,11 @@ public class AddDataFrag extends Fragment {
                 datePicker.setText(format.format(c.getTime()));
 
                 getDbData(c);
-                previousData(c);
+                try {
+                    previousData(c);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 getActivity().invalidateOptionsMenu();
             }
         });
@@ -181,8 +212,14 @@ public class AddDataFrag extends Fragment {
                     Toast.makeText(getActivity(), "몸무게 값이 비워져있습니다.", Toast.LENGTH_LONG).show();
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-
-                    CalendarDay cd=new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
+                    Date dd=null;
+                    try {
+                        dd=format.parse(format.format(c.getTime()));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+//                    CalendarDay cd=new CalendarDay(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE));
+                    CalendarDay cd=new CalendarDay(dd);
                     if(list.contains(cd)) {
                         builder.setMessage("현재 데이터를 덮어씌우시겠습니까?");
                         builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
@@ -191,7 +228,8 @@ public class AddDataFrag extends Fragment {
                                 values.put("weight",Float.parseFloat(weight.getText().toString()));
                                 values.put("exercise",exercise.getRating());
                                 values.put("food",food.getRating());
-                                db.update("myRecord",values,"record_date=?", new String[]{cd.getYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDay()});
+//                                db.update("myRecord",values,"record_date=?", new String[]{cd.getYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDay()});
+                                db.update("myRecord",values,"record_date=?", new String[]{format.format(cd.getDate())});
                             }
                         });
 
@@ -200,7 +238,7 @@ public class AddDataFrag extends Fragment {
                         builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 ContentValues values = new ContentValues();
-                                values.put("record_date",cd.getYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDay());
+                                values.put("record_date",format.format(cd.getDate()));
                                 values.put("weight",Float.parseFloat(weight.getText().toString()));
                                 values.put("exercise",exercise.getRating());
                                 values.put("food",food.getRating());
@@ -229,14 +267,15 @@ public class AddDataFrag extends Fragment {
 
         return v;
     }
-    public void previousData(Calendar c) {
+    public void previousData(Calendar c) throws ParseException {
         int r=getRange(list,c);
         if(r==-1) {
             previousWeightText.setText("");
         } else {
             StringBuffer sb = new StringBuffer();
             sb.append("select * from myRecord where record_date like ?");
-            String[] params = {list.get(r).getCalendar().get(Calendar.YEAR) + "-" + (list.get(r).getCalendar().get(Calendar.MONTH)+1) + "-" + list.get(r).getCalendar().get(Calendar.DATE)};
+//            String[] params = {list.get(r).getCalendar().get(Calendar.YEAR) + "-" + (list.get(r).getCalendar().get(Calendar.MONTH)+1) + "-" + list.get(r).getCalendar().get(Calendar.DATE)};
+            String[] params = {format.format(list.get(r).getDate())};
             Cursor cursor = db.rawQuery(sb.toString(), params);
 
             String weiValue = "", exValue = "", foValue = "";
@@ -249,27 +288,36 @@ public class AddDataFrag extends Fragment {
             previousWeightText.setText("이전 몸무게는 "+weiValue+"kg,\n식사는 "+foValue+", 운동은 "+exValue+"입니다.");
         }
     }
-    public int getRange(List<CalendarDay> list, Calendar date) {
+    public int getRange(List<CalendarDay> list, Calendar date) throws ParseException {
         if(list.isEmpty())
             return -1;
+        Date dd=format.parse(format.format(date.getTime()));
+        Calendar cc=Calendar.getInstance();
+        cc.setTime(dd);
         for(int i=0;i<list.size()-1;i++) { // size()==0 or 1 제외
-            Calendar v1=list.get(i).getCalendar();
-            if(v1.equals(date))
-                return i == 0 ? -1 : list.indexOf(new CalendarDay(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE))) - 1;
-            if(date.after(list.get(i).getCalendar()) && date.before(list.get(i+1).getCalendar()))
+            Calendar v1=list.get(i).getCalendar(); //2021-03-07
+            if(v1.equals(cc)) {
+//                return i == 0 ? -1 : list.indexOf(new CalendarDay(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE))) - 1;
+                return i == 0 ? -1 : list.indexOf(new CalendarDay(dd)) - 1;
+            }
+//            if(date.after(list.get(i).getCalendar()) && date.before(list.get(i+1).getCalendar()))
+            if(cc.after(list.get(i).getCalendar()) && cc.before(list.get(i+1).getCalendar()))
                 return i;
         }
-        if(list.get(list.size()-1).getCalendar().equals(date))
+//        if(list.get(list.size()-1).getCalendar().equals(date))
+        if(list.get(list.size()-1).getCalendar().equals(cc))
             return list.size()-2;
-        return date.before(list.get(0).getCalendar())?-1:list.size()-1; // 1인데 양끝 범위 여기서 처리됨
+        return cc.before(list.get(0).getCalendar())?-1:list.size()-1; // 1인데 양끝 범위 여기서 처리됨
+
     }
     public void deleteDbData(Calendar c) {
-        db.delete("myRecord","record_date=?",new String[]{c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)});
+//        db.delete("myRecord","record_date=?",new String[]{c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)});
+        db.delete("myRecord","record_date=?",new String[]{format.format(c.getTime())});
     }
     public void getDbData(Calendar c) {
         StringBuffer sb = new StringBuffer();
         sb.append("select * from myRecord where record_date like ?");
-        String[] params = {c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)};
+        String[] params = {format.format(c.getTime())};
         Cursor cursor = db.rawQuery(sb.toString(), params);
 
         String weiValue = "", exValue = "", foValue = "";
