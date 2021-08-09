@@ -1,30 +1,37 @@
 package com.example.mydietapp.ui;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.media.Rating;
 import android.os.Bundle;
 import android.view.*;
+import android.webkit.HttpAuthHandler;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.RatingBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.mydietapp.R;
 import com.example.mydietapp.db.DbHelper;
+import com.example.mydietapp.decorator.XValueFormatter;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.prolificinteractive.materialcalendarview.CalendarDay;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.*;
 
 public class GraphFrag extends Fragment {
@@ -38,31 +45,43 @@ public class GraphFrag extends Fragment {
     private LineDataSet weiSet;
     private LineDataSet exSet;
     private LineDataSet foSet;
+
     private ArrayList<String> dateValue;
     private ArrayList<Float> weiValue;
     private ArrayList<Float> exValue;
     private ArrayList<Float> foValue;
+    private Map<String,Float> w; // date,weight
+    private Map<String,Float> e;
+    private Map<String,Float> f;
 
     private CheckBox exCheck;
     private CheckBox foCheck;
-    private RatingBar fo;
+
+    private SimpleDateFormat format;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         v=inflater.inflate(R.layout.frag_graph,container,false);
         dialogV= LayoutInflater.from(v.getContext()).inflate(R.layout.graph_dialog, null);
         setHasOptionsMenu(true);
-
+        format = new SimpleDateFormat ( "yyyy-MM-dd");
 
         helper = new DbHelper(getActivity(), "myDiet.db", null, 1);
         db = helper.getWritableDatabase();
         helper.onCreate(db);
 
         select();
-        setChart();
+        try {
+            setChart();
+        } catch (ParseException parseException) {
+            System.out.println("엥");
+        }
         setXAxis();
         setLeftYAxis();
         setRightYAxis();
+
+//        String a=format.format(CalendarDay.today())
+        System.out.println("날짜:"+ (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)==Calendar.TUESDAY));
 
         return v;
     }
@@ -82,19 +101,45 @@ public class GraphFrag extends Fragment {
         }
     }
 
-    public void setChart() {
+    public void setChart() throws ParseException {
         chart = v.findViewById(R.id.chart);
         ArrayList<Entry> date = new ArrayList<>();
         ArrayList<Entry> weight = new ArrayList<>(); // 그려지는 차트에 들어갈 값
         ArrayList<Entry> exercise = new ArrayList<>();
         ArrayList<Entry> food = new ArrayList<>();
 
-        for (int i = 0; i < weiValue.size(); i++) {
-            float val = weiValue.get(i);
-            weight.add(new Entry(i, val)); // i값이 x축 값, val값이 y축 값
-            exercise.add(new Entry(i, exValue.get(i)));
-            food.add(new Entry(i, foValue.get(i)));
+        Calendar startDate=Calendar.getInstance();
+        startDate.setTime(format.parse(dateValue.get(0)));
+        startDate.add(Calendar.DATE,-8);
+
+        System.out.println("c:"+format.format(startDate.getTime()));
+        for(Calendar c=startDate;c.before(CalendarDay.today().getCalendar());c.add(Calendar.DATE,1)) {
+            System.out.println("c:1 "+format.format(c.getTime()));
+            if(dateValue.contains(format.format(c.getTime()))) {
+                int i=dateValue.indexOf(format.format(c.getTime()));
+                int a = (int) (c.getTimeInMillis()/1000);
+//                System.out.println("value:2 "+a+" "+format.format(new Date(((long)a)*1000L)));
+                System.out.println("value:2 "+c.getTime().getTime()+" "+format.format(new Date(c.getTime().getTime())));
+                System.out.println("value:3 "+(int) (c.getTime().getTime()/1000)+" "+format.format(new Date((long)a*1000)));
+//                weight.add(new Entry((int) (c.getTimeInMillis()/1000),weiValue.get(i)));
+//                exercise.add(new Entry((int) (c.getTimeInMillis()/1000),exValue.get(i)));
+//                food.add(new Entry((int) (c.getTimeInMillis()/1000),foValue.get(i)));
+
+                weight.add(new Entry((float)a,weiValue.get(i)));
+                exercise.add(new Entry((float)a,exValue.get(i)));
+                food.add(new Entry((float)a,foValue.get(i)));
+            }
+
         }
+//        for (int i = 0; i < weiValue.size(); i++) {
+//            float val = weiValue.get(i);
+//            weight.add(new Entry(i, val)); // i값이 x축 값, val값이 y축 값
+//            exercise.add(new Entry(i, exValue.get(i)));
+//            food.add(new Entry(i, foValue.get(i)));
+//        }
+
+
+
         weiSet = new LineDataSet(weight, "몸무게"); // 차트 값, 차트 이름
         exSet =new LineDataSet(exercise,"운동량");
         foSet =new LineDataSet(food,"식사량");
@@ -121,16 +166,18 @@ public class GraphFrag extends Fragment {
         foSet.setDrawValues(false);
 
         // set data
+        chart.setDescription(null);
         chart.setData(data);
-        chart.setVisibleXRangeMaximum(5); // allow 20 values to be displayed at once on the x-axis, not more
-        chart.moveViewToX(5); // set the left edge of the chart to x-index 10
+        chart.setVisibleXRangeMaximum(7); // setLabelCount와 동일하면 label의 세로줄과 딱 맞쳐짐
+        chart.moveViewToX(21); // 데이터 총 개수보다 몇개 더 많아야됨
     }
     public void setXAxis() {
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // X축 위치 설정
-        xAxis.setLabelCount(10, true); //X축의 데이터를 최대 몇개 까지 나타낼지에 대한 설정 5개 force가 true 이면 반드시 보여줌
-//        xAxis.setTextColor(ContextCompat.getColor(getContext(), R.color.textColor)); // X축 텍스트컬러설정
-//        xAxis.setGridColor(ContextCompat.getColor(getContext(), R.color.textColor)); // X축 줄의 컬러 설정
+//        xAxis.setGranularity(1f); // 줌 간격(3개월이나 1년 단위일때 한번 해보기)
+        xAxis.setLabelCount(7, false); //X축의 데이터를 최대 몇개 까지 나타낼지에 대한 설정 5개 force가 true 이면 반드시 보여줌
+        xAxis.setValueFormatter(new XValueFormatter());
+
     }
     public void setLeftYAxis() { // 몸무게 세팅
         YAxis leftAxis = chart.getAxisLeft();
