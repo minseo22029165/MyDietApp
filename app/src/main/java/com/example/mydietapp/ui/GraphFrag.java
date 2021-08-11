@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.mydietapp.R;
 import com.example.mydietapp.db.DbHelper;
+import com.example.mydietapp.decorator.ColoredLabelXAxisRenderer;
 import com.example.mydietapp.decorator.XValueFormatter;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
@@ -28,6 +29,8 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
@@ -58,6 +61,7 @@ public class GraphFrag extends Fragment {
     private CheckBox foCheck;
 
     private SimpleDateFormat format;
+    private List<Integer> indexes;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -73,10 +77,10 @@ public class GraphFrag extends Fragment {
         select();
         try {
             setChart();
+            setXAxis();
         } catch (ParseException parseException) {
             System.out.println("엥");
         }
-        setXAxis();
         setLeftYAxis();
         setRightYAxis();
 
@@ -112,42 +116,59 @@ public class GraphFrag extends Fragment {
         startDate.setTime(format.parse(dateValue.get(0)));
         startDate.add(Calendar.DATE,-8);
 
-        System.out.println("c:"+format.format(startDate.getTime()));
-        for(Calendar c=startDate;c.before(CalendarDay.today().getCalendar());c.add(Calendar.DATE,1)) {
+        Calendar endDate=CalendarDay.today().getCalendar();
+        endDate.add(Calendar.DATE,3);
+
+        int index=0;
+//        indexes=new ArrayList<>();
+//        weight.add(new Entry(index++,Float.NaN));
+        for(Calendar c=startDate;c.before(endDate);c.add(Calendar.DATE,1)) {
             System.out.println("c:1 "+format.format(c.getTime()));
             if(dateValue.contains(format.format(c.getTime()))) {
                 int i=dateValue.indexOf(format.format(c.getTime()));
-                int a = (int) (c.getTimeInMillis()/1000);
-//                System.out.println("value:2 "+a+" "+format.format(new Date(((long)a)*1000L)));
+                int a = (int) (c.getTimeInMillis()/100000);
                 System.out.println("value:2 "+c.getTime().getTime()+" "+format.format(new Date(c.getTime().getTime())));
-                System.out.println("value:3 "+(int) (c.getTime().getTime()/1000)+" "+format.format(new Date((long)a*1000)));
-//                weight.add(new Entry((int) (c.getTimeInMillis()/1000),weiValue.get(i)));
-//                exercise.add(new Entry((int) (c.getTimeInMillis()/1000),exValue.get(i)));
-//                food.add(new Entry((int) (c.getTimeInMillis()/1000),foValue.get(i)));
 
-                weight.add(new Entry((float)a,weiValue.get(i)));
-                exercise.add(new Entry((float)a,exValue.get(i)));
-                food.add(new Entry((float)a,foValue.get(i)));
+                Calendar c2= Calendar.getInstance();
+                c2.setTime(format.parse(dateValue.get(0)));
+                c2.add(Calendar.DATE,40);
+                System.out.println("value: al "+format.format(c2.getTime()));
+
+                Calendar c1= Calendar.getInstance();
+                c1.setTime(format.parse(dateValue.get(0)));
+                c1.add(Calendar.DATE,-1);
+                for(int m=0;m<365;m++) {
+                    System.out.println("value: ii1 "+m+" "+format.format(c1.getTime()));
+                    if((format.format(c1.getTime())).equals(format.format(c.getTime()))) {
+                        System.out.println("value: ii2 "+m+" "+format.format(c1.getTime()));
+                        weight.add(new Entry(m,weiValue.get(i)));
+//                        exercise.add(new Entry(ii,exValue.get(i)));
+//                        food.add(new Entry(ii,foValue.get(i)));
+                        break;
+                    }
+                    c1.add(Calendar.DATE,1);
+                }
+
+//                weight.add(new Entry(index*10,weiValue.get(i)));
+//                index++;
+
+//                weight.add(new Entry( ,weiValue.get(i)));
+////                weight.add(new Entry(1 ,weiValue.get(i)));
+//                exercise.add(new Entry(,exValue.get(i)));
+//                food.add(new Entry(,foValue.get(i)));
             }
 
         }
-//        for (int i = 0; i < weiValue.size(); i++) {
-//            float val = weiValue.get(i);
-//            weight.add(new Entry(i, val)); // i값이 x축 값, val값이 y축 값
-//            exercise.add(new Entry(i, exValue.get(i)));
-//            food.add(new Entry(i, foValue.get(i)));
-//        }
 
 
-
-        weiSet = new LineDataSet(weight, "몸무게"); // 차트 값, 차트 이름
-        exSet =new LineDataSet(exercise,"운동량");
-        foSet =new LineDataSet(food,"식사량");
+        weiSet =new LineDataSet(weight, "몸무게"); // 차트 값, 차트 이름
+//        exSet =new LineDataSet(exercise,"운동량");
+//        foSet =new LineDataSet(food,"식사량");
 
         ArrayList<ILineDataSet> dataSets = new ArrayList<>(); // 여러 차트를 넣음
         dataSets.add(weiSet); // add the data sets
-        dataSets.add(exSet);
-        dataSets.add(foSet);
+//        dataSets.add(exSet);
+//        dataSets.add(foSet);
 
         // create a data object with the data sets
         LineData data = new LineData(dataSets);
@@ -156,27 +177,28 @@ public class GraphFrag extends Fragment {
         weiSet.setColor(Color.BLACK);
         weiSet.setCircleColor(Color.BLACK);
 
-        exSet.setColor(Color.RED);
-        exSet.setCircleColor(Color.RED);
-        exSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
-        exSet.setDrawValues(false);
-        foSet.setColor(Color.BLUE);
-        foSet.setCircleColor(Color.BLUE);
-        foSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
-        foSet.setDrawValues(false);
+//        exSet.setColor(Color.RED);
+//        exSet.setCircleColor(Color.RED);
+//        exSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+//        exSet.setDrawValues(false);
+//        foSet.setColor(Color.BLUE);
+//        foSet.setCircleColor(Color.BLUE);
+//        foSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+//        foSet.setDrawValues(false);
 
         // set data
         chart.setDescription(null);
         chart.setData(data);
         chart.setVisibleXRangeMaximum(7); // setLabelCount와 동일하면 label의 세로줄과 딱 맞쳐짐
-        chart.moveViewToX(21); // 데이터 총 개수보다 몇개 더 많아야됨
+        chart.moveViewToX(Integer.MAX_VALUE); // 데이터 총 개수보다 몇개 더 많아야됨
+        chart.setXAxisRenderer(new ColoredLabelXAxisRenderer(chart.getViewPortHandler(), chart.getXAxis(), chart.getTransformer(YAxis.AxisDependency.LEFT)));
     }
-    public void setXAxis() {
+    public void setXAxis() throws ParseException {
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // X축 위치 설정
 //        xAxis.setGranularity(1f); // 줌 간격(3개월이나 1년 단위일때 한번 해보기)
         xAxis.setLabelCount(7, false); //X축의 데이터를 최대 몇개 까지 나타낼지에 대한 설정 5개 force가 true 이면 반드시 보여줌
-        xAxis.setValueFormatter(new XValueFormatter());
+        xAxis.setValueFormatter(new XValueFormatter(dateValue.get(0)));
 
     }
     public void setLeftYAxis() { // 몸무게 세팅
