@@ -7,34 +7,29 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.*;
-import android.webkit.HttpAuthHandler;
 import android.widget.CheckBox;
-import android.widget.RatingBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Toast;
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import com.example.mydietapp.MainActivity;
 import com.example.mydietapp.R;
 import com.example.mydietapp.db.DbHelper;
-import com.example.mydietapp.decorator.ColoredLabelXAxisRenderer;
 import com.example.mydietapp.decorator.XValueFormatter;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.*;
 
 public class GraphFrag extends Fragment {
@@ -49,22 +44,80 @@ public class GraphFrag extends Fragment {
     private LineDataSet exSet;
     private LineDataSet foSet;
 
+    private XAxis xAxis;
+    private YAxis rightAxis;
+    private YAxis leftAxis;
+
     private ArrayList<String> dateValue;
     private ArrayList<Float> weiValue;
     private ArrayList<Float> exValue;
     private ArrayList<Float> foValue;
-    private Map<String,Float> w; // date,weight
-    private Map<String,Float> e;
-    private Map<String,Float> f;
 
     private CheckBox exCheck;
     private CheckBox foCheck;
 
     private SimpleDateFormat format;
-    private List<Integer> indexes;
+    private float minWeight;
+    private float maxWeight;
+
+    private RadioGroup radioGroup;
+    private RadioButton radio_week;
+    private RadioButton radio_month;
+    private RadioButton radio_month3;
+    private RadioButton radio_year;
+    private int between;
+
+    public RadioGroup.OnCheckedChangeListener radioGroupButtonChangeListener = new RadioGroup.OnCheckedChangeListener() {
+        @Override public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
+            switch(i) {
+                case R.id.week:
+                    chart.fitScreen();
+                    chart.setVisibleXRangeMaximum(7);
+                    chart.moveViewToX(chart.getXChartMax());
+                    xAxis=null;
+                    try {
+                        setXAxis(7,3);
+                    } catch (ParseException parseException) {
+                        System.out.println("엥");
+                    }
+                    break;
+                case R.id.month:
+                    chart.fitScreen();
+                    chart.setVisibleXRangeMaximum(25);
+//                    chart.moveViewToX(chart.getXChartMin());
+                    chart.moveViewToX(chart.getXChartMax()-25);
+                    xAxis=null;
+                    try {
+                        setXAxis(9,25);
+                    } catch (ParseException parseException) {
+                        System.out.println("엥");
+                    }
+                    break;
+                case R.id.month3:
+                    chart.fitScreen();
+                    chart.setVisibleXRangeMaximum(70);
+                    chart.moveViewToX(chart.getXChartMax()-70);
+                    xAxis=null;
+                    try {
+                        setXAxis(8,70);
+                    } catch (ParseException parseException) {
+                        System.out.println("엥");
+                    }
+                    break;
+                case R.id.year:
+                    break;
+            }
+            System.out.println("max:"+ xAxis.getAxisMaximum()+",min:"+xAxis.getAxisMinimum());
+            chart.notifyDataSetChanged();
+            chart.invalidate();
+
+        }
+    };
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        System.out.println("oncreateview입니다");
         v=inflater.inflate(R.layout.frag_graph,container,false);
         dialogV= LayoutInflater.from(v.getContext()).inflate(R.layout.graph_dialog, null);
         setHasOptionsMenu(true);
@@ -74,17 +127,23 @@ public class GraphFrag extends Fragment {
         db = helper.getWritableDatabase();
         helper.onCreate(db);
 
+        radioGroup=v.findViewById(R.id.radioGroup);
+        radio_week=v.findViewById(R.id.week);
+        radio_month=v.findViewById(R.id.month);
+        radio_month3=v.findViewById(R.id.month3);
+        radio_year=v.findViewById(R.id.year);
+        radioGroup.setOnCheckedChangeListener(radioGroupButtonChangeListener);
+
         select();
         try {
-            setChart();
-            setXAxis();
+            setChart(7);
+            setXAxis(7,3);
         } catch (ParseException parseException) {
             System.out.println("엥");
         }
         setLeftYAxis();
         setRightYAxis();
 
-//        String a=format.format(CalendarDay.today())
         System.out.println("날짜:"+ (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)==Calendar.TUESDAY));
 
         return v;
@@ -97,15 +156,23 @@ public class GraphFrag extends Fragment {
         foValue=new ArrayList<>();
         exValue=new ArrayList<>();
 
+        minWeight=Float.MAX_VALUE;
+        maxWeight=Float.MIN_VALUE;
+
         while (cursor.moveToNext()) {
             dateValue.add(cursor.getString(1));
             weiValue.add(Float.parseFloat(cursor.getString(2)));
             exValue.add(Float.parseFloat(cursor.getString(3)));
             foValue.add(Float.parseFloat(cursor.getString(4)));
+
+            if(minWeight>Float.parseFloat(cursor.getString(2)))
+                minWeight=Float.parseFloat(cursor.getString(2));
+            if(maxWeight<Float.parseFloat(cursor.getString(2)))
+                maxWeight=Float.parseFloat(cursor.getString(2));
         }
     }
 
-    public void setChart() throws ParseException {
+    public void setChart(int rangeCount) throws ParseException {
         chart = v.findViewById(R.id.chart);
         ArrayList<Entry> date = new ArrayList<>();
         ArrayList<Entry> weight = new ArrayList<>(); // 그려지는 차트에 들어갈 값
@@ -114,61 +181,40 @@ public class GraphFrag extends Fragment {
 
         Calendar startDate=Calendar.getInstance();
         startDate.setTime(format.parse(dateValue.get(0)));
-        startDate.add(Calendar.DATE,-8);
-
         Calendar endDate=CalendarDay.today().getCalendar();
-        endDate.add(Calendar.DATE,3);
+        endDate.add(Calendar.DATE,1);
 
-        int index=0;
-//        indexes=new ArrayList<>();
-//        weight.add(new Entry(index++,Float.NaN));
+        between=0;
         for(Calendar c=startDate;c.before(endDate);c.add(Calendar.DATE,1)) {
-            System.out.println("c:1 "+format.format(c.getTime()));
             if(dateValue.contains(format.format(c.getTime()))) {
                 int i=dateValue.indexOf(format.format(c.getTime()));
-                int a = (int) (c.getTimeInMillis()/100000);
-                System.out.println("value:2 "+c.getTime().getTime()+" "+format.format(new Date(c.getTime().getTime())));
-
-                Calendar c2= Calendar.getInstance();
-                c2.setTime(format.parse(dateValue.get(0)));
-                c2.add(Calendar.DATE,40);
-                System.out.println("value: al "+format.format(c2.getTime()));
 
                 Calendar c1= Calendar.getInstance();
                 c1.setTime(format.parse(dateValue.get(0)));
                 c1.add(Calendar.DATE,-1);
+
                 for(int m=0;m<365;m++) {
-                    System.out.println("value: ii1 "+m+" "+format.format(c1.getTime()));
                     if((format.format(c1.getTime())).equals(format.format(c.getTime()))) {
-                        System.out.println("value: ii2 "+m+" "+format.format(c1.getTime()));
                         weight.add(new Entry(m,weiValue.get(i)));
-//                        exercise.add(new Entry(ii,exValue.get(i)));
-//                        food.add(new Entry(ii,foValue.get(i)));
+                        exercise.add(new Entry(m,exValue.get(i)));
+                        food.add(new Entry(m,foValue.get(i)));
                         break;
                     }
                     c1.add(Calendar.DATE,1);
                 }
-
-//                weight.add(new Entry(index*10,weiValue.get(i)));
-//                index++;
-
-//                weight.add(new Entry( ,weiValue.get(i)));
-////                weight.add(new Entry(1 ,weiValue.get(i)));
-//                exercise.add(new Entry(,exValue.get(i)));
-//                food.add(new Entry(,foValue.get(i)));
             }
-
+            between++;
         }
 
 
         weiSet =new LineDataSet(weight, "몸무게"); // 차트 값, 차트 이름
-//        exSet =new LineDataSet(exercise,"운동량");
-//        foSet =new LineDataSet(food,"식사량");
+        exSet =new LineDataSet(exercise,"운동량");
+        foSet =new LineDataSet(food,"식사량");
 
         ArrayList<ILineDataSet> dataSets = new ArrayList<>(); // 여러 차트를 넣음
         dataSets.add(weiSet); // add the data sets
-//        dataSets.add(exSet);
-//        dataSets.add(foSet);
+        dataSets.add(exSet);
+        dataSets.add(foSet);
 
         // create a data object with the data sets
         LineData data = new LineData(dataSets);
@@ -177,46 +223,50 @@ public class GraphFrag extends Fragment {
         weiSet.setColor(Color.BLACK);
         weiSet.setCircleColor(Color.BLACK);
 
-//        exSet.setColor(Color.RED);
-//        exSet.setCircleColor(Color.RED);
-//        exSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
-//        exSet.setDrawValues(false);
-//        foSet.setColor(Color.BLUE);
-//        foSet.setCircleColor(Color.BLUE);
-//        foSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
-//        foSet.setDrawValues(false);
+        exSet.setColor(Color.RED);
+        exSet.setCircleColor(Color.RED);
+        exSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+        exSet.setDrawValues(false);
+        foSet.setColor(Color.BLUE);
+        foSet.setCircleColor(Color.BLUE);
+        foSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+        foSet.setDrawValues(false);
 
-        // set data
         chart.setDescription(null);
         chart.setData(data);
-        chart.setVisibleXRangeMaximum(7); // setLabelCount와 동일하면 label의 세로줄과 딱 맞쳐짐
-        chart.moveViewToX(Integer.MAX_VALUE); // 데이터 총 개수보다 몇개 더 많아야됨
-        chart.setXAxisRenderer(new ColoredLabelXAxisRenderer(chart.getViewPortHandler(), chart.getXAxis(), chart.getTransformer(YAxis.AxisDependency.LEFT)));
+        chart.setVisibleXRangeMaximum(rangeCount); // setLabelCount와 동일하면 label의 세로줄과 딱 맞쳐짐
+        chart.moveViewToX(chart.getXChartMax()); // 데이터 총 개수보다 몇개 더 많아야됨
+//        chart.setXAxisRenderer(new ColoredLabelXAxisRenderer(chart.getViewPortHandler(), chart.getXAxis(), chart.getTransformer(YAxis.AxisDependency.LEFT)));
     }
-    public void setXAxis() throws ParseException {
-        XAxis xAxis = chart.getXAxis();
+
+    public void setXAxis(int count,int range) throws ParseException {
+        xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // X축 위치 설정
-//        xAxis.setGranularity(1f); // 줌 간격(3개월이나 1년 단위일때 한번 해보기)
-        xAxis.setLabelCount(7, false); //X축의 데이터를 최대 몇개 까지 나타낼지에 대한 설정 5개 force가 true 이면 반드시 보여줌
+        xAxis.setGranularity(1f); // 줌 간격(3개월이나 1년 단위일때 한번 해보기)
+        xAxis.setLabelCount(count, false); //X축의 데이터를 최대 몇개 까지 나타낼지에 대한 설정, force가 false면 줄이 스크롤에 고정돼서 같이 움직임
         xAxis.setValueFormatter(new XValueFormatter(dateValue.get(0)));
+        xAxis.setAxisMinimum(chart.getXChartMin()-range); // xaxis 시작전 여백
+        xAxis.setAxisMaximum(chart.getXChartMax()+range); // xaxis 끝나고 여백
 
     }
     public void setLeftYAxis() { // 몸무게 세팅
-        YAxis leftAxis = chart.getAxisLeft();
-        leftAxis.setAxisMaximum(100f); // 최대값 100
-        leftAxis.setAxisMinimum(0f); // 최소값 0
-        leftAxis.setDrawGridLines(true);
-        leftAxis.setGranularityEnabled(true);
+        leftAxis = chart.getAxisLeft();
+        leftAxis.setAxisMaximum(maxWeight+3);
+        leftAxis.setAxisMinimum(minWeight-3);
+
+        leftAxis.setDrawZeroLine(false);
+        leftAxis.setDrawGridLines(false);
+        leftAxis.setGranularity(0.1f);
     }
     public void setRightYAxis() { // 5점만점 세팅
-        YAxis rightAxis = chart.getAxisRight();
+        rightAxis = chart.getAxisRight();
         rightAxis.setTextColor(Color.RED);
-        rightAxis.setAxisMaximum(5); // 최대값 100
-        rightAxis.setAxisMinimum(0); // 최소값 0
+        rightAxis.setAxisMaximum(5);
+        rightAxis.setAxisMinimum(0);
         rightAxis.setLabelCount(11);
-        rightAxis.setDrawZeroLine(false);
-        rightAxis.setDrawGridLines(false);
-        rightAxis.setGranularityEnabled(false);
+
+        rightAxis.setGranularity(0.5f);
+        rightAxis.setDrawGridLines(true);
     }
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
@@ -245,6 +295,8 @@ public class GraphFrag extends Fragment {
                                     foSet.setVisible(true);
                                 else
                                     foSet.setVisible(false);
+                                chart.notifyDataSetChanged();
+                                chart.invalidate();
                             }
                         })
                         .setNegativeButton("취소", null);

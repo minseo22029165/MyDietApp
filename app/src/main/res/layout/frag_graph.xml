@@ -6,37 +6,64 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/colorPrimary"
-        >
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="5dp"
-            android:gravity="center">
-        <Button
-                android:layout_width="wrap_content"
+        android:background="@color/colorPrimary">
+
+    <RadioGroup android:id="@+id/radioGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+        <RadioButton
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/week"
-                android:text="일주일" />
-        <Button
-                android:layout_width="wrap_content"
+                android:text="일주일"
+                android:layout_marginHorizontal="5dp"
+                android:layout_weight="1"
+                android:paddingVertical="7dp"
+                android:button="@null"
+                android:gravity="center_horizontal"
+                android:background="@drawable/selector_radio_button"
+                android:textColor="@drawable/selector_radio_text"
+                android:checked="true"/>
+        <RadioButton
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/month"
-                android:text="한달"/>
-        <Button
-                android:layout_width="wrap_content"
+                android:text="한달"
+                android:layout_weight="1"
+                android:button="@null"
+                android:paddingVertical="7dp"
+                android:gravity="center_horizontal"
+                android:background="@drawable/selector_radio_button"
+                android:textColor="@drawable/selector_radio_text"/>
+        <RadioButton
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/month3"
-                android:text="3개월"/>
-        <Button
-                android:layout_width="wrap_content"
+                android:text="3개월"
+                android:layout_marginHorizontal="5dp"
+                android:layout_weight="1"
+                android:paddingVertical="7dp"
+                android:button="@null"
+                android:gravity="center_horizontal"
+                android:background="@drawable/selector_radio_button"
+                android:textColor="@drawable/selector_radio_text"/>
+        <RadioButton
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/year"
-                android:text="1년"/>
+                android:text="1년"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:paddingVertical="7dp"
+                android:button="@null"
+                android:gravity="center_horizontal"
+                android:background="@drawable/selector_radio_button"
+                android:textColor="@drawable/selector_radio_text"/>
+    </RadioGroup>
 
-
-    </LinearLayout>
     <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/chart"
             android:layout_width="match_parent"
