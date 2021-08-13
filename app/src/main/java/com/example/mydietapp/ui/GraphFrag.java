@@ -68,46 +68,70 @@ public class GraphFrag extends Fragment {
     private int between;
 
     public RadioGroup.OnCheckedChangeListener radioGroupButtonChangeListener = new RadioGroup.OnCheckedChangeListener() {
-        @Override public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
+        @Override
+        public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
             switch(i) {
                 case R.id.week:
+                    xAxis.resetAxisMaximum();
+                    xAxis.resetAxisMinimum();
+                    chart.notifyDataSetChanged();
                     chart.fitScreen();
-                    chart.setVisibleXRangeMaximum(7);
-                    chart.moveViewToX(chart.getXChartMax());
-                    xAxis=null;
                     try {
                         setXAxis(7,3);
-                    } catch (ParseException parseException) {
-                        System.out.println("엥");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
+                    chartDetailed(7,8);
+//                    chart.setVisibleXRangeMaximum(7);
+//                    chart.moveViewToX(chart.getXChartMax()-8);
                     break;
                 case R.id.month:
+                    xAxis.resetAxisMaximum();
+                    xAxis.resetAxisMinimum();
+                    chart.notifyDataSetChanged();
                     chart.fitScreen();
-                    chart.setVisibleXRangeMaximum(25);
-//                    chart.moveViewToX(chart.getXChartMin());
-                    chart.moveViewToX(chart.getXChartMax()-25);
-                    xAxis=null;
+
                     try {
-                        setXAxis(9,25);
-                    } catch (ParseException parseException) {
-                        System.out.println("엥");
+                        setXAxis(8,25);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
+                    chartDetailed(25,45);
+//                    chart.setVisibleXRangeMaximum(25);
+//                    chart.moveViewToX(chart.getXChartMax()-45);
                     break;
                 case R.id.month3:
+                    xAxis.resetAxisMaximum();
+                    xAxis.resetAxisMinimum();
+                    chart.notifyDataSetChanged();
                     chart.fitScreen();
-                    chart.setVisibleXRangeMaximum(70);
-                    chart.moveViewToX(chart.getXChartMax()-70);
-                    xAxis=null;
+
                     try {
                         setXAxis(8,70);
-                    } catch (ParseException parseException) {
-                        System.out.println("엥");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
+                    chartDetailed(70,130);
+//                    chart.setVisibleXRangeMaximum(70);
+//                    chart.moveViewToX(chart.getXChartMax()-130);
                     break;
                 case R.id.year:
+                    xAxis.resetAxisMaximum();
+                    xAxis.resetAxisMinimum();
+                    chart.notifyDataSetChanged();
+                    chart.fitScreen();
+
+                    try {
+                        setXAxis(12,365);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    chartDetailed(365,670);
+//                    chart.setVisibleXRangeMaximum(365);
+//                    chart.moveViewToX(chart.getXChartMax()-670);
                     break;
             }
-            System.out.println("max:"+ xAxis.getAxisMaximum()+",min:"+xAxis.getAxisMinimum());
+            System.out.println("max2:"+ chart.getXChartMax());
             chart.notifyDataSetChanged();
             chart.invalidate();
 
@@ -117,7 +141,6 @@ public class GraphFrag extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        System.out.println("oncreateview입니다");
         v=inflater.inflate(R.layout.frag_graph,container,false);
         dialogV= LayoutInflater.from(v.getContext()).inflate(R.layout.graph_dialog, null);
         setHasOptionsMenu(true);
@@ -136,14 +159,14 @@ public class GraphFrag extends Fragment {
 
         select();
         try {
-            setChart(7);
+            setChart();
             setXAxis(7,3);
         } catch (ParseException parseException) {
             System.out.println("엥");
         }
         setLeftYAxis();
         setRightYAxis();
-
+        chartDetailed(7,8);
         System.out.println("날짜:"+ (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)==Calendar.TUESDAY));
 
         return v;
@@ -172,7 +195,7 @@ public class GraphFrag extends Fragment {
         }
     }
 
-    public void setChart(int rangeCount) throws ParseException {
+    public void setChart() throws ParseException {
         chart = v.findViewById(R.id.chart);
         ArrayList<Entry> date = new ArrayList<>();
         ArrayList<Entry> weight = new ArrayList<>(); // 그려지는 차트에 들어갈 값
@@ -234,19 +257,21 @@ public class GraphFrag extends Fragment {
 
         chart.setDescription(null);
         chart.setData(data);
-        chart.setVisibleXRangeMaximum(rangeCount); // setLabelCount와 동일하면 label의 세로줄과 딱 맞쳐짐
-        chart.moveViewToX(chart.getXChartMax()); // 데이터 총 개수보다 몇개 더 많아야됨
 //        chart.setXAxisRenderer(new ColoredLabelXAxisRenderer(chart.getViewPortHandler(), chart.getXAxis(), chart.getTransformer(YAxis.AxisDependency.LEFT)));
     }
+    public void chartDetailed(int count,float value) {
+        chart.setVisibleXRangeMaximum(count); // setLabelCount와 동일하면 label의 세로줄과 딱 맞쳐짐
+        chart.moveViewToX(chart.getXChartMax()-value); // 데이터 총 개수보다 몇개 더 많아야됨
+    }
 
-    public void setXAxis(int count,int range) throws ParseException {
+    public void setXAxis(int count,float range) throws ParseException {
         xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // X축 위치 설정
         xAxis.setGranularity(1f); // 줌 간격(3개월이나 1년 단위일때 한번 해보기)
         xAxis.setLabelCount(count, false); //X축의 데이터를 최대 몇개 까지 나타낼지에 대한 설정, force가 false면 줄이 스크롤에 고정돼서 같이 움직임
         xAxis.setValueFormatter(new XValueFormatter(dateValue.get(0)));
-        xAxis.setAxisMinimum(chart.getXChartMin()-range); // xaxis 시작전 여백
-        xAxis.setAxisMaximum(chart.getXChartMax()+range); // xaxis 끝나고 여백
+        xAxis.setAxisMinimum((int)(chart.getXChartMin()-range)); // xaxis 시작전 여백
+        xAxis.setAxisMaximum((int)(chart.getXChartMax()+range)); // xaxis 끝나고 여백
 
     }
     public void setLeftYAxis() { // 몸무게 세팅
