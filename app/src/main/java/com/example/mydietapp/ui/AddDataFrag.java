@@ -297,21 +297,17 @@ public class AddDataFrag extends Fragment {
         for(int i=0;i<list.size()-1;i++) { // size()==0 or 1 제외
             Calendar v1=list.get(i).getCalendar(); //2021-03-07
             if(v1.equals(cc)) {
-//                return i == 0 ? -1 : list.indexOf(new CalendarDay(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE))) - 1;
-                return i == 0 ? -1 : list.indexOf(new CalendarDay(dd)) - 1;
+               return i == 0 ? -1 : list.indexOf(new CalendarDay(dd)) - 1;
             }
-//            if(date.after(list.get(i).getCalendar()) && date.before(list.get(i+1).getCalendar()))
-            if(cc.after(list.get(i).getCalendar()) && cc.before(list.get(i+1).getCalendar()))
+           if(cc.after(list.get(i).getCalendar()) && cc.before(list.get(i+1).getCalendar()))
                 return i;
         }
-//        if(list.get(list.size()-1).getCalendar().equals(date))
-        if(list.get(list.size()-1).getCalendar().equals(cc))
+       if(list.get(list.size()-1).getCalendar().equals(cc))
             return list.size()-2;
         return cc.before(list.get(0).getCalendar())?-1:list.size()-1; // 1인데 양끝 범위 여기서 처리됨
 
     }
     public void deleteDbData(Calendar c) {
-//        db.delete("myRecord","record_date=?",new String[]{c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE)});
         db.delete("myRecord","record_date=?",new String[]{format.format(c.getTime())});
     }
     public void getDbData(Calendar c) {

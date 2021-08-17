@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import com.example.mydietapp.MainActivity;
 import com.example.mydietapp.R;
 import com.example.mydietapp.db.DbHelper;
+import com.example.mydietapp.decorator.MyMarkerView;
 import com.example.mydietapp.decorator.XValueFormatter;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -77,13 +78,15 @@ public class GraphFrag extends Fragment {
                     chart.notifyDataSetChanged();
                     chart.fitScreen();
                     try {
-                        setXAxis(7,3);
+                        setXAxis(7,3,"week");
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
                     chartDetailed(7,8);
-//                    chart.setVisibleXRangeMaximum(7);
-//                    chart.moveViewToX(chart.getXChartMax()-8);
+                    weiSet.setDrawValues(true);
+                    weiSet.setDrawCircles(true);
+                    foSet.setDrawCircles(true);
+                    exSet.setDrawCircles(true);
                     break;
                 case R.id.month:
                     xAxis.resetAxisMaximum();
@@ -92,13 +95,15 @@ public class GraphFrag extends Fragment {
                     chart.fitScreen();
 
                     try {
-                        setXAxis(8,25);
+                        setXAxis(8,25,"month");
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
                     chartDetailed(25,45);
-//                    chart.setVisibleXRangeMaximum(25);
-//                    chart.moveViewToX(chart.getXChartMax()-45);
+                    weiSet.setDrawValues(true);
+                    weiSet.setDrawCircles(true);
+                    foSet.setDrawCircles(true);
+                    exSet.setDrawCircles(true);
                     break;
                 case R.id.month3:
                     xAxis.resetAxisMaximum();
@@ -107,13 +112,15 @@ public class GraphFrag extends Fragment {
                     chart.fitScreen();
 
                     try {
-                        setXAxis(8,70);
+                        setXAxis(8,105,"month3");
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
-                    chartDetailed(70,130);
-//                    chart.setVisibleXRangeMaximum(70);
-//                    chart.moveViewToX(chart.getXChartMax()-130);
+                    chartDetailed(105,190);
+                    weiSet.setDrawValues(false);
+                    weiSet.setDrawCircles(false);
+                    foSet.setDrawCircles(false);
+                    exSet.setDrawCircles(false);
                     break;
                 case R.id.year:
                     xAxis.resetAxisMaximum();
@@ -122,13 +129,15 @@ public class GraphFrag extends Fragment {
                     chart.fitScreen();
 
                     try {
-                        setXAxis(12,365);
+                        setXAxis(12,365,"year");
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
                     chartDetailed(365,670);
-//                    chart.setVisibleXRangeMaximum(365);
-//                    chart.moveViewToX(chart.getXChartMax()-670);
+                    weiSet.setDrawValues(false);
+                    weiSet.setDrawCircles(false);
+                    foSet.setDrawCircles(false);
+                    exSet.setDrawCircles(false);
                     break;
             }
             System.out.println("max2:"+ chart.getXChartMax());
@@ -160,13 +169,22 @@ public class GraphFrag extends Fragment {
         select();
         try {
             setChart();
-            setXAxis(7,3);
+            setXAxis(7,3,"week");
         } catch (ParseException parseException) {
             System.out.println("엥");
         }
         setLeftYAxis();
         setRightYAxis();
         chartDetailed(7,8);
+
+//        chart.setDragEnabled(true);
+//        chart.setScaleEnabled(true);
+//        chart.setPinchZoom(true);
+
+
+        MyMarkerView mv = new MyMarkerView(getActivity(),R.layout.custom_marker_view,LayoutInflater.from(v.getContext()).inflate(R.layout.custom_marker_view, null));
+//        mv.setChartView(chart.getLineData().getDataSetByIndex(0));
+        chart.setMarker(mv);
         System.out.println("날짜:"+ (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)==Calendar.TUESDAY));
 
         return v;
@@ -254,7 +272,6 @@ public class GraphFrag extends Fragment {
         foSet.setCircleColor(Color.BLUE);
         foSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
         foSet.setDrawValues(false);
-
         chart.setDescription(null);
         chart.setData(data);
 //        chart.setXAxisRenderer(new ColoredLabelXAxisRenderer(chart.getViewPortHandler(), chart.getXAxis(), chart.getTransformer(YAxis.AxisDependency.LEFT)));
@@ -264,12 +281,13 @@ public class GraphFrag extends Fragment {
         chart.moveViewToX(chart.getXChartMax()-value); // 데이터 총 개수보다 몇개 더 많아야됨
     }
 
-    public void setXAxis(int count,float range) throws ParseException {
+    public void setXAxis(int count,float range,String type) throws ParseException {
         xAxis = chart.getXAxis();
+        xAxis.setLabelRotationAngle(-30);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // X축 위치 설정
         xAxis.setGranularity(1f); // 줌 간격(3개월이나 1년 단위일때 한번 해보기)
         xAxis.setLabelCount(count, false); //X축의 데이터를 최대 몇개 까지 나타낼지에 대한 설정, force가 false면 줄이 스크롤에 고정돼서 같이 움직임
-        xAxis.setValueFormatter(new XValueFormatter(dateValue.get(0)));
+        xAxis.setValueFormatter(new XValueFormatter(dateValue.get(0),type));
         xAxis.setAxisMinimum((int)(chart.getXChartMin()-range)); // xaxis 시작전 여백
         xAxis.setAxisMaximum((int)(chart.getXChartMax()+range)); // xaxis 끝나고 여백
 

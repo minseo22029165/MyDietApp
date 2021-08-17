@@ -18,12 +18,23 @@ import java.util.concurrent.TimeUnit;
 
 public class XValueFormatter extends ValueFormatter {
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-    private SimpleDateFormat format2 = new SimpleDateFormat("MM-dd");
+    private SimpleDateFormat format2;
     private Calendar first;
 
-    public XValueFormatter(String d) throws ParseException {
+    public XValueFormatter(String d,String type) throws ParseException {
         first=Calendar.getInstance();
         first.setTime(format.parse(d));
+
+        switch (type) {
+            case "week":
+            case "month":
+            case "month3":
+                format2=new SimpleDateFormat("MM-dd");
+                break;
+            case "year":
+                format2=new SimpleDateFormat("yy-MM");
+                break;
+        }
     }
 
     // add(new Entry())된 것들만만 formatted하는게 아니라
