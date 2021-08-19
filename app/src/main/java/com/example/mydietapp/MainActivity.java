@@ -1,8 +1,11 @@
 package com.example.mydietapp;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toolbar;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -29,7 +32,12 @@ public class MainActivity extends AppCompatActivity {
         manager = getSupportFragmentManager();
         manager.beginTransaction().add(R.id.fragment_container, new CalendarFrag()).commit(); // 첫화면 띄우기
 
-
+        androidx.appcompat.widget.Toolbar tb = findViewById(R.id.app_toolbar);
+        tb.setTitleTextColor(Color.BLACK);
+        setSupportActionBar(tb);
+        ActionBar ab = getSupportActionBar();
+        ab.setTitle("Calendar");
+        ab.show();
         mBottomNavigationView=findViewById(R.id.bottom_navigation);
 
         mBottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -38,15 +46,18 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()){
                     case R.id.b_calendar :
                         manager.beginTransaction().replace(R.id.fragment_container,new CalendarFrag()).commit();
+                        ab.setTitle("Calendar");
                         break;
                     case R.id.b_graph:
                         manager.beginTransaction().replace(R.id.fragment_container,new GraphFrag()).commit();
+                        ab.setTitle("Chart");
                         break;
                     case R.id.b_setting:
                         manager.beginTransaction().replace(R.id.fragment_container,new SettingFrag()).commit();
+                        ab.setTitle("Setting");
                         break;
-
                 }
+                ab.show();
                 return true;
             }
         });
@@ -57,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         if (!fragmentStack.isEmpty()) {
             Fragment nextFragment = fragmentStack.pop();
             manager.beginTransaction().replace(R.id.fragment_container, nextFragment).commit();
-            System.out.println("[TESTING >>] " + fragmentStack.size());
         } else {
             super.onBackPressed();
         }

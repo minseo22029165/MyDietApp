@@ -1,5 +1,6 @@
 package com.example.mydietapp.ui;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,6 +15,7 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.example.mydietapp.MainActivity;
 import com.example.mydietapp.custom.NumberDecimalInputFilter;
@@ -24,8 +26,6 @@ import com.example.mydietapp.decorator.HighlightTodayDecorator;
 import com.example.mydietapp.decorator.HighlightSaturdayDecorator;
 import com.example.mydietapp.R;
 import com.prolificinteractive.materialcalendarview.*;
-
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
@@ -50,6 +50,7 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
         db = helper.getWritableDatabase();
         helper.onCreate(db);
 
+
         String sql2 = "select * from myRecord;";
         Cursor c = db.rawQuery(sql2, null);
         while(c.moveToNext()){
@@ -69,7 +70,7 @@ public class CalendarFrag extends Fragment implements OnDateSelectedListener, On
                 new HighlightTodayDecorator(getActivity()), // 액티비티가 context를 의미하므로 getActivity() 사용함
                 new HighlightSaturdayDecorator(),
                 new HighlightSundayDecorator(),
-                new DotPrcatcice(Color.CYAN,set)
+                new DotPrcatcice(Color.CYAN,set,getActivity())
         );
 
         return v;

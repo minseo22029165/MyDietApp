@@ -69,17 +69,22 @@ public class MyItemAdapter extends BaseAdapter {
         text.setText(item.getText());
 
         SwitchCompat switchView=convertView.findViewById(R.id.list_switch);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("alarmFile",Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPreferences.edit();
+
+        if(sharedPreferences.getString("time",null)==null)  // 값이 없다면
+            switchView.setChecked(false);
+        else
+            switchView.setChecked(true);
         switchView.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener(){
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences sharedPreferences = context.getSharedPreferences("alarmFile", Activity.MODE_PRIVATE);
-                SharedPreferences.Editor editor=sharedPreferences.edit();
-
                 Intent intent = new Intent(context, AlertReceiver.class);
                 PendingIntent pIntent = PendingIntent.getBroadcast(context, 1,intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
                 if(isChecked) { // 체크 x->체크 o
+                    System.out.println("time123: check x->o");
                     Calendar c=Calendar.getInstance();
 
                     AlertDialog.Builder builder1= new AlertDialog.Builder(context);
@@ -113,10 +118,12 @@ public class MyItemAdapter extends BaseAdapter {
                     timePicker=dialog.findViewById(R.id.timePicker);
 
                 } else { // 체크 o->체크 x
+                    System.out.println("time123: check o->x");
                     // 알람 삭제
                     alarmManager.cancel(pIntent);
                     // SharedPreferences 값 null로 update
-                    sharedPreferences.getString("time",null);
+                    editor.putString("time",null);
+                    editor.apply();
                 }
             }
         });

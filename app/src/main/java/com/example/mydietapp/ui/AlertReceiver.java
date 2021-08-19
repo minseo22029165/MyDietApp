@@ -16,10 +16,9 @@ public class AlertReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) { // 폰 껐다 켰을때 사라진 설정값 부여
-
-        }
-
+//        if(intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) { // 폰 껐다 켰을때 사라진 설정값 부여
+//
+//        }
         //알림(Notification)을 관리하는 관리자 객체를 운영체제(Context)로부터 소환하기
         NotificationManager notificationManager=(NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
         NotificationCompat.Builder builder= null;

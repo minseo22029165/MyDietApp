@@ -7,10 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.*;
-import android.widget.CheckBox;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Toast;
+import android.widget.*;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,6 +65,8 @@ public class GraphFrag extends Fragment {
     private RadioButton radio_year;
     private int between;
 
+    private MyMarkerView mv;
+
     public RadioGroup.OnCheckedChangeListener radioGroupButtonChangeListener = new RadioGroup.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
@@ -83,10 +82,13 @@ public class GraphFrag extends Fragment {
                         e.printStackTrace();
                     }
                     chartDetailed(7,8);
-                    weiSet.setDrawValues(true);
+                    weiSet.setDrawValues(false);
                     weiSet.setDrawCircles(true);
                     foSet.setDrawCircles(true);
                     exSet.setDrawCircles(true);
+
+                    mv.setChartView(chart);
+                    chart.setMarker(mv);
                     break;
                 case R.id.month:
                     xAxis.resetAxisMaximum();
@@ -100,10 +102,13 @@ public class GraphFrag extends Fragment {
                         e.printStackTrace();
                     }
                     chartDetailed(25,45);
-                    weiSet.setDrawValues(true);
+                    weiSet.setDrawValues(false);
                     weiSet.setDrawCircles(true);
                     foSet.setDrawCircles(true);
                     exSet.setDrawCircles(true);
+
+                    mv.setChartView(chart);
+                    chart.setMarker(mv);
                     break;
                 case R.id.month3:
                     xAxis.resetAxisMaximum();
@@ -121,6 +126,9 @@ public class GraphFrag extends Fragment {
                     weiSet.setDrawCircles(false);
                     foSet.setDrawCircles(false);
                     exSet.setDrawCircles(false);
+
+                    mv.setChartView(null);
+                    chart.setMarker(null);
                     break;
                 case R.id.year:
                     xAxis.resetAxisMaximum();
@@ -138,9 +146,13 @@ public class GraphFrag extends Fragment {
                     weiSet.setDrawCircles(false);
                     foSet.setDrawCircles(false);
                     exSet.setDrawCircles(false);
+
+                    mv.setChartView(null);
+                    chart.setMarker(null);
                     break;
             }
             System.out.println("max2:"+ chart.getXChartMax());
+
             chart.notifyDataSetChanged();
             chart.invalidate();
 
@@ -165,8 +177,16 @@ public class GraphFrag extends Fragment {
         radio_month3=v.findViewById(R.id.month3);
         radio_year=v.findViewById(R.id.year);
         radioGroup.setOnCheckedChangeListener(radioGroupButtonChangeListener);
+        chart = v.findViewById(R.id.chart);
 
         select();
+        if(dateValue.size()==0) {
+            TextView t=v.findViewById(R.id.alertText);
+            t.setVisibility(View.VISIBLE);
+            radioGroup.setVisibility(View.GONE);
+            chart.setVisibility(View.GONE);
+            return v;
+        }
         try {
             setChart();
             setXAxis(7,3,"week");
@@ -182,11 +202,9 @@ public class GraphFrag extends Fragment {
 //        chart.setPinchZoom(true);
 
 
-        MyMarkerView mv = new MyMarkerView(getActivity(),R.layout.custom_marker_view,LayoutInflater.from(v.getContext()).inflate(R.layout.custom_marker_view, null));
-//        mv.setChartView(chart.getLineData().getDataSetByIndex(0));
+        mv = new MyMarkerView(getActivity(),R.layout.custom_marker_view,LayoutInflater.from(v.getContext()).inflate(R.layout.custom_marker_view, null));
+        mv.setChartView(chart);
         chart.setMarker(mv);
-        System.out.println("날짜:"+ (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)==Calendar.TUESDAY));
-
         return v;
     }
     public void select() {
@@ -214,7 +232,6 @@ public class GraphFrag extends Fragment {
     }
 
     public void setChart() throws ParseException {
-        chart = v.findViewById(R.id.chart);
         ArrayList<Entry> date = new ArrayList<>();
         ArrayList<Entry> weight = new ArrayList<>(); // 그려지는 차트에 들어갈 값
         ArrayList<Entry> exercise = new ArrayList<>();
@@ -263,6 +280,7 @@ public class GraphFrag extends Fragment {
         // black lines and points
         weiSet.setColor(Color.BLACK);
         weiSet.setCircleColor(Color.BLACK);
+        weiSet.setDrawValues(false);
 
         exSet.setColor(Color.RED);
         exSet.setCircleColor(Color.RED);
@@ -294,7 +312,7 @@ public class GraphFrag extends Fragment {
     }
     public void setLeftYAxis() { // 몸무게 세팅
         leftAxis = chart.getAxisLeft();
-        leftAxis.setAxisMaximum(maxWeight+3);
+        leftAxis.setAxisMaximum(maxWeight+5);
         leftAxis.setAxisMinimum(minWeight-3);
 
         leftAxis.setDrawZeroLine(false);
@@ -303,7 +321,7 @@ public class GraphFrag extends Fragment {
     }
     public void setRightYAxis() { // 5점만점 세팅
         rightAxis = chart.getAxisRight();
-        rightAxis.setTextColor(Color.RED);
+        rightAxis.setTextColor(R.color.purple);
         rightAxis.setAxisMaximum(5);
         rightAxis.setAxisMinimum(0);
         rightAxis.setLabelCount(11);
@@ -313,13 +331,17 @@ public class GraphFrag extends Fragment {
     }
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.graph_top_menu, menu);
+        if(dateValue.size()!=0)
+            inflater.inflate(R.menu.graph_top_menu, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.filter:
+                mv.setClickable(false);
+                chart.setMarker(null);
+
                 exCheck=dialogV.findViewById(R.id.exCheck);
                 foCheck=dialogV.findViewById(R.id.foCheck);
 
@@ -330,16 +352,42 @@ public class GraphFrag extends Fragment {
                 builder.setView(dialogV);
                 builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                if(exCheck.isChecked())
+                                ArrayList<ILineDataSet> dataSets = new ArrayList<>(); // 여러 차트를 넣음
+                                dataSets.add(weiSet); // add the data sets
+
+                                if (exCheck.isChecked()) {
                                     exSet.setVisible(true);
-                                else
+                                    dataSets.add(exSet);
+                                } else {
                                     exSet.setVisible(false);
-                                if(foCheck.isChecked())
+                                }
+                                if (foCheck.isChecked()) {
                                     foSet.setVisible(true);
-                                else
+                                    dataSets.add(foSet);
+                                } else {
                                     foSet.setVisible(false);
+                                }
+                                LineData data = new LineData(dataSets);
+                                // black lines and points
+                                weiSet.setColor(Color.BLACK);
+                                weiSet.setCircleColor(Color.BLACK);
+                                weiSet.setDrawValues(false);
+                                exSet.setColor(Color.RED);
+                                exSet.setCircleColor(Color.RED);
+                                exSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+                                exSet.setDrawValues(false);
+                                foSet.setColor(Color.BLUE);
+                                foSet.setCircleColor(Color.BLUE);
+                                foSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+                                foSet.setDrawValues(false);
+                                chart.setDescription(null);
+                                chart.setData(data);
+
                                 chart.notifyDataSetChanged();
                                 chart.invalidate();
+
+                                mv.setChartView(chart);
+                                chart.setMarker(mv);
                             }
                         })
                         .setNegativeButton("취소", null);

@@ -2,23 +2,24 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="40dp"
-    android:background="@drawable/marker2"
-    tools:ignore="Overdraw">
+    android:layout_height="wrap_content"
+    android:background="@drawable/ic_place_black_24dp"
+    android:backgroundTint="#D2BFF4">
 
     <TextView
-        android:id="@+id/tvContent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="7dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:text=""
-        android:textSize="12sp"
-        android:textColor="@android:color/white"
-        android:ellipsize="end"
-        android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:id="@+id/tvContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="40dp"
+            android:layout_marginHorizontal="40dp"
+            android:text="123.1"
+            android:background="#D2BFF4"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:ellipsize="end"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:gravity="center_horizontal"/>
 
 </RelativeLayout>

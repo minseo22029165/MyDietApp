@@ -4,15 +4,27 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:text="몸무게만 저장하는게 아니라 \n몸무게에 영향을 미치는 식사량과 운동량 만족도도 \n같이 기록해보는게 어떨까라는 생각으로 만든 토이 앱"
+                android:gravity="center"/>
+        <View
+                android:layout_width="wrap_content"
+                android:layout_height="1dp"
+                android:background="@color/darkGray"
+                android:layout_marginVertical="20dp"/>
         <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:src="@drawable/maru_image"
-                android:layout_marginVertical="20dp"/>
+                android:layout_marginVertical="5dp"/>
+
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="마루를 좋아하는 bom04"
+                android:text="마루를 사랑하는 bom04"
                 android:gravity="center"/>
         <TextView
                 android:layout_width="match_parent"
@@ -21,4 +33,6 @@
                 android:gravity="center"
                 android:linksClickable="true"
                 android:autoLink="web"/>
+
+
 </LinearLayout>

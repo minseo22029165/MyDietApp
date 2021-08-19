@@ -22,30 +22,22 @@ import com.github.mikephil.charting.utils.Utils;
 @SuppressLint("ViewConstructor")
 public class MyMarkerView extends MarkerView {
 
-    private final TextView tvContent;
+    private TextView tvContent;
 
     public MyMarkerView(Context context, int layoutResource, View v) {
         super(context, layoutResource);
 
-        tvContent = v.findViewById(R.id.tvContent);
+        tvContent = findViewById(R.id.tvContent);
     }
 
-    // runs every time the MarkerView is redrawn, can be used to update the
-    // content (user-interface)
     @Override
     public void refreshContent(Entry e, Highlight highlight) {
-
         if (e instanceof CandleEntry) {
-
             CandleEntry ce = (CandleEntry) e;
-
-            tvContent.setText(Utils.formatNumber(ce.getHigh(), 0, true));
-            System.out.println("getHigh 1:"+ce.getHigh());
+//            tvContent.setText(Utils.formatNumber(ce.getHigh(), 0, true));
         } else {
-
-            tvContent.setText(Utils.formatNumber(e.getY(), 0, true));
+            tvContent.setText(String.valueOf(e.getY()));
         }
-        System.out.println("getHigh 2:"+e.getY());
         super.refreshContent(e, highlight);
     }
 

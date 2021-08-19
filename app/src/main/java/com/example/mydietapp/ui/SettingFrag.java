@@ -87,17 +87,20 @@ public class SettingFrag extends Fragment {
         View v=inflater.inflate(R.layout.frag_setting,container,false);
 
         fragmentStack = new Stack<>();
-//        manager = getSupportFragmentManager();
-
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("alarmFile",Activity.MODE_PRIVATE);
-        SharedPreferences.Editor editor=sharedPreferences.edit();
-        if(sharedPreferences.getString("time",null)==null) { // 값이 없다면
-
-        }
 
         listView = v.findViewById(R.id.list_view);
         adapter=new MyItemAdapter(getActivity(),R.layout.list_item,setListViewData());
         listView.setAdapter((ListAdapter) adapter);
+
+//        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("alarmFile",Activity.MODE_PRIVATE);
+//        SharedPreferences.Editor editor=sharedPreferences.edit();
+//        SwitchCompat listSwitch=listView.findViewById(R.id.list_switch);
+//        System.out.println("checked:"+listSwitch.isChecked());
+//        if(sharedPreferences.getString("time",null)==null)  // 값이 없다면
+//            listSwitch.setChecked(false);
+//        else
+//            listSwitch.setChecked(true);
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -124,6 +127,8 @@ public class SettingFrag extends Fragment {
                         alertDialog.show();
                         break;
                     case "앱 정보":
+                        MainActivity.fragmentStack.push(new SettingFrag());
+//                        ((MainActivity)getActivity()).replaceFragment(AddDataFrag.newInstance(date,set));
                         MainActivity.manager.beginTransaction().replace(R.id.fragment_container,new AppInfoFrag()).commit();
                         break;
                 }
