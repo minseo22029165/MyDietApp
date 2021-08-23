@@ -1,3 +1,4 @@
+
 # MyDietApp
 
 ### 기능
@@ -14,9 +15,12 @@
 ### 시연
 
 * 달력, 차트
-![달력,차트](https://github.com/bom04/MyDietApp/tree/master/design/test_gif1.gif)
+<img width="30%" src="https://github.com/bom04/MyDietApp/blob/master/design/test_gif1.gif?raw=true"/>
+
+
+
 * 설정
-![달력,차트](https://github.com/bom04/MyDietApp/tree/master/design/test_gif2.gif)
+<img width="30%" src="https://github.com/bom04/MyDietApp/blob/master/design/test_gif2.gif?raw=true"/>
 
 ### 사용한 프레임워크 및 라이브러리
 
