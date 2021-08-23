@@ -204,7 +204,7 @@ public class GraphFrag extends Fragment {
         mv = new MyMarkerView(getActivity(),R.layout.custom_marker_view,LayoutInflater.from(v.getContext()).inflate(R.layout.custom_marker_view, null));
         mv.setChartView(chart);
         chart.setMarker(mv);
-        
+
         return v;
     }
     public void select() {
