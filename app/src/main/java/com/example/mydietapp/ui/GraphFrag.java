@@ -201,10 +201,10 @@ public class GraphFrag extends Fragment {
 //        chart.setScaleEnabled(true);
 //        chart.setPinchZoom(true);
 
-
         mv = new MyMarkerView(getActivity(),R.layout.custom_marker_view,LayoutInflater.from(v.getContext()).inflate(R.layout.custom_marker_view, null));
         mv.setChartView(chart);
         chart.setMarker(mv);
+        
         return v;
     }
     public void select() {
@@ -339,9 +339,6 @@ public class GraphFrag extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.filter:
-                mv.setClickable(false);
-                chart.setMarker(null);
-
                 exCheck=dialogV.findViewById(R.id.exCheck);
                 foCheck=dialogV.findViewById(R.id.foCheck);
 
@@ -352,6 +349,8 @@ public class GraphFrag extends Fragment {
                 builder.setView(dialogV);
                 builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+                                chart.highlightValue(null); // mv로 선택된 linechart를 remove하면 에러 발생하므로 하이라이트된 mv를 삭제되는 코드 삽입
+
                                 ArrayList<ILineDataSet> dataSets = new ArrayList<>(); // 여러 차트를 넣음
                                 dataSets.add(weiSet); // add the data sets
 
@@ -383,11 +382,11 @@ public class GraphFrag extends Fragment {
                                 chart.setDescription(null);
                                 chart.setData(data);
 
+
+                                chart.setDrawMarkers(true);
                                 chart.notifyDataSetChanged();
                                 chart.invalidate();
 
-                                mv.setChartView(chart);
-                                chart.setMarker(mv);
                             }
                         })
                         .setNegativeButton("취소", null);

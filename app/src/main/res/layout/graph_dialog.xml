@@ -15,14 +15,15 @@
     <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="식사량"
-            android:id="@+id/foCheck"
+            android:text="운동량"
+            android:id="@+id/exCheck"
             android:checked="true"/>
     <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="운동량"
-            android:id="@+id/exCheck"
+            android:text="식사량"
+            android:id="@+id/foCheck"
             android:checked="true"/>
+
 
 </LinearLayout>
